@@ -1,6 +1,9 @@
 package libnf
 
-import "errors"
+import (
+	"errors"
+	"libnf/internal"
+)
 
 // Weak errors
 var (
@@ -36,3 +39,7 @@ var (
 	ErrOtherMsg   = errors.New("other error with additional information")
 	ErrNaN        = errors.New("attempt to divide by 0")
 )
+
+func Error() string {
+	return internal.Error()
+}

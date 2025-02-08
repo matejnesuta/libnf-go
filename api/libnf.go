@@ -2,7 +2,6 @@ package libnf
 
 import (
 	"C"
-	"errors"
 	"libnf/internal"
 	"unsafe"
 )
@@ -28,24 +27,22 @@ type LnfFileFlag uint
 // this flag is stored into the lnf_file_t structure, but it is not clear whether it is used anywhere
 // #define LNF_WEAKERR			0x08
 
-// todo segfaults
 func Error() string {
 	return internal.Error()
 }
 
-// TODO check if file pointer is nil
 func getInfo(info int, f uintptr) (uintptr, error) {
 	if f == 0 {
-		return 0, errors.New("file pointer is nil")
+		return 0, ErrFileNotOpened
 	}
 	buf := make([]byte, internal.INFO_BUFSIZE) // Allocate memory
 	data := uintptr(unsafe.Pointer(&buf[0]))
 	status := internal.Info(f, info, data, int64(internal.INFO_BUFSIZE))
 	if status == internal.ERR_NOMEM {
-		return data, errors.New("not enough memory to allocate data buffer")
+		return data, ErrNoMem
 	}
 	if status == internal.ERR_OTHER {
-		return data, errors.New("error while getting info")
+		return data, ErrOther
 	}
 	return data, nil
 }
@@ -74,14 +71,6 @@ func getUint64Info(info int, f uintptr) (uint64, error) {
 	}
 	return *(*uint64)(unsafe.Pointer(data)), nil
 }
-
-// func getIntInfo(info int, f uintptr) (int, error) {
-// 	data, err := getInfo(info, f)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return *(*int)(unsafe.Pointer(data)), nil
-// }
 
 func (f LnfFile) GetLibnfVersion() (string, error) {
 	return getStringInfo(internal.INFO_VERSION, uintptr(f))
@@ -202,7 +191,7 @@ func OpenRead(filename string, readLoop bool, weakErr bool) (LnfFile, error) {
 	}
 	status := internal.Open(&ptr, filename, uint(flags), "")
 	if status != internal.OK {
-		return LnfFile(ptr), errors.New("Cannot open file " + filename)
+		return LnfFile(ptr), ErrCannotOpenFile
 	}
 	return LnfFile(ptr), nil
 }

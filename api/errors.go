@@ -27,6 +27,13 @@ var (
 	ErrCannotOpenFile    = errors.New("cannot open file")
 	ErrFileNotOpened     = errors.New("file is not opened")
 	ErrFileAlreadyOpened = errors.New("file is already opened")
+	FileEof              = errors.New("end of file")
+)
+
+// Record errors
+var (
+	ErrRecordNotAllocated = errors.New("record is not allocated")
+	ErrUnknownFldType     = errors.New("unknown field type")
 )
 
 // Other errors

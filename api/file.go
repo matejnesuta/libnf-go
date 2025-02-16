@@ -255,3 +255,18 @@ func (file *File) Close() error {
 	}
 	return ErrFileNotOpened
 }
+
+func (file *File) GetNextRecord(r *Record) error {
+	if !file.opened {
+		return ErrFileNotOpened
+	} else if !r.allocated {
+		return ErrRecordNotAllocated
+	}
+	status := internal.Read(file.ptr, r.ptr)
+	if status == internal.ERR_NOMEM {
+		return ErrNoMem
+	} else if status == internal.EOF {
+		return FileEof
+	}
+	return nil
+}

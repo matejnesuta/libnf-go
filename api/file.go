@@ -92,7 +92,7 @@ func (f *File) IsCompressed() (bool, error) {
 	return getBoolInfo(internal.INFO_COMPRESSED, f)
 }
 
-func (f *File) IsAnonimized() (bool, error) {
+func (f *File) IsAnonymized() (bool, error) {
 	return getBoolInfo(internal.INFO_ANONYMIZED, f)
 }
 

@@ -9,7 +9,10 @@ import (
 
 func main() {
 	var ptr libnf.File
-	err := ptr.OpenRead("testfiles/test-file.tmp", false, false)
+	err := ptr.OpenRead("api/tests/testfiles/nfcapd.201705281555", false, false)
+	ident, err := ptr.GetIdent()
+
+	fmt.Println(ident)
 	if err != nil {
 		fmt.Println(err)
 	}

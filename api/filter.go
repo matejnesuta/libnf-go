@@ -37,6 +37,7 @@ func (f *Filter) Free() error {
 		return ErrFilterNotInit
 	}
 	internal.Filter_free(f.ptr)
+	f.allocated = false
 	return nil
 }
 

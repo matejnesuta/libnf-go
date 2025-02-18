@@ -34,17 +34,23 @@ var (
 var (
 	ErrRecordNotAllocated = errors.New("record is not allocated")
 	ErrUnknownFldType     = errors.New("unknown field type")
+	ErrUnknownFld         = errors.New("unknown field")
+)
+
+// Filter errors
+var (
+	ErrFilter            = errors.New("cannot compile a filter")
+	ErrFilterNotInit     = errors.New("filter is not initialized")
+	ErrFilterAlreadyInit = errors.New("filter is already initialized")
 )
 
 // Other errors
 var (
-	ErrNotSet     = errors.New("item is not set")
-	ErrUnknownFld = errors.New("unknown field")
-	ErrFilter     = errors.New("cannot compile a filter")
-	ErrNoMem      = errors.New("cannot allocate memory")
-	ErrOther      = errors.New("other error")
-	ErrOtherMsg   = errors.New("other error with additional information")
-	ErrNaN        = errors.New("attempt to divide by 0")
+	ErrNotSet   = errors.New("item is not set")
+	ErrNoMem    = errors.New("cannot allocate memory")
+	ErrOther    = errors.New("other error")
+	ErrOtherMsg = errors.New("other error with additional information")
+	ErrNaN      = errors.New("attempt to divide by 0")
 )
 
 func Error() string {

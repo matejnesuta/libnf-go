@@ -13,21 +13,19 @@ type Record struct {
 	allocated bool
 }
 
-type IPAddr net.IP
 type MacAddr net.HardwareAddr
-type Timestamp time.Time
 
 type BasicRecord1 struct {
-	First   uint64 // LNF_FLD_FIRST
-	Last    uint64 // LNF_FLD_LAST
-	SrcAddr net.IP // LNF_FLD_SRCADDR
-	DstAddr net.IP // LNF_FLD_DSTADDR
-	Prot    uint8  // LNF_FLD_PROT
-	SrcPort uint16 // LNF_FLD_SRCPORT
-	DstPort uint16 // LNF_FLD_DSTPORT
-	Bytes   uint64 // LNF_FLD_DOCTETS
-	Pkts    uint64 // LNF_FLD_DPKTS
-	Flows   uint64 // LNF_FLD_AGGR_FLOWS
+	First   time.Time // LNF_FLD_FIRST
+	Last    time.Time // LNF_FLD_LAST
+	SrcAddr net.IP    // LNF_FLD_SRCADDR
+	DstAddr net.IP    // LNF_FLD_DSTADDR
+	Prot    uint8     // LNF_FLD_PROT
+	SrcPort uint16    // LNF_FLD_SRCPORT
+	DstPort uint16    // LNF_FLD_DSTPORT
+	Bytes   uint64    // LNF_FLD_DOCTETS
+	Pkts    uint64    // LNF_FLD_DPKTS
+	Flows   uint64    // LNF_FLD_AGGR_FLOWS
 }
 
 type Acl struct {
@@ -138,8 +136,8 @@ const (
 )
 
 var fieldTypes = map[int]any{
-	FldFirst:             Timestamp{},
-	FldLast:              Timestamp{},
+	FldFirst:             time.Time{},
+	FldLast:              time.Time{},
 	FldReceived:          uint64(0),
 	FldDoctets:           uint64(0),
 	FldDpkts:             uint64(0),
@@ -152,12 +150,12 @@ var fieldTypes = map[int]any{
 	FldDstport:           uint16(0),
 	FldTcpFlags:          uint8(0),
 	FldTcpFlagsAlias:     uint8(0),
-	FldSrcaddr:           IPAddr{0},
-	FldDstaddr:           IPAddr{0},
-	FldSrcaddrAlias:      IPAddr{0},
-	FldDstaddrAlias:      IPAddr{0},
-	FldIpNextHop:         IPAddr{0},
-	FldIpNextHopAlias:    IPAddr{0},
+	FldSrcaddr:           net.IP{0},
+	FldDstaddr:           net.IP{0},
+	FldSrcaddrAlias:      net.IP{0},
+	FldDstaddrAlias:      net.IP{0},
+	FldIpNextHop:         net.IP{0},
+	FldIpNextHopAlias:    net.IP{0},
 	FldSrcMask:           uint8(0),
 	FldDstMask:           uint8(0),
 	FldTos:               uint8(0),
@@ -166,7 +164,7 @@ var fieldTypes = map[int]any{
 	FldDstAS:             uint32(0),
 	FldBgpNextAdjacentAS: uint32(0),
 	FldBgpPrevAdjacentAS: uint32(0),
-	FldBgpNextHop:        IPAddr{0},
+	FldBgpNextHop:        net.IP{0},
 	FldProt:              uint8(0),
 	FldSrcVlan:           uint16(0),
 	FldDstVlan:           uint16(0),
@@ -179,8 +177,8 @@ var fieldTypes = map[int]any{
 	FldOutput:            uint32(0),
 	FldDir:               uint8(0),
 	FldFwdStatus:         uint8(0),
-	FldIpRouter:          IPAddr{0},
-	FldIpRouterAlias:     IPAddr{0},
+	FldIpRouter:          net.IP{0},
+	FldIpRouterAlias:     net.IP{0},
 	FldEngineType:        uint8(0),
 	FldEngineId:          uint8(0),
 	FldEngineTypeAlias:   uint8(0),
@@ -193,8 +191,8 @@ var fieldTypes = map[int]any{
 	FldIcmpTypeAlias:     uint8(0),
 	FldFwXEvent:          uint16(0),
 	FldFwEvent:           uint8(0),
-	FldXlateSrcIp:        IPAddr{0},
-	FldXlateDstIp:        IPAddr{0},
+	FldXlateSrcIp:        net.IP{0},
+	FldXlateDstIp:        net.IP{0},
 	FldXlateSrcPort:      uint16(0),
 	FldXlateDstPort:      uint16(0),
 	FldIngressAclId:      uint32(0),
@@ -217,7 +215,7 @@ var fieldTypes = map[int]any{
 	FldServerNwDelayUsec: uint64(0),
 	FldApplLatencyUsec:   uint64(0),
 	FldInetFamily:        uint32(0),
-	FldExporterIp:        IPAddr{0},
+	FldExporterIp:        net.IP{0},
 	FldExporterId:        uint32(0),
 	FldExporterVersion:   uint32(0),
 	FldSequenceFailures:  uint32(0),
@@ -230,8 +228,8 @@ var fieldTypes = map[int]any{
 	FldCalcBpp:           float64(0),
 	FldBrec1:             BasicRecord1{},
 	FldPairPort:          uint16(0),
-	FldPairAddr:          IPAddr{0},
-	FldPairAddrAlias:     IPAddr{0},
+	FldPairAddr:          net.IP{0},
+	FldPairAddrAlias:     net.IP{0},
 	FldPairAs:            uint32(0),
 	FldPairIf:            uint16(0),
 	FldPairVlan:          uint16(0),
@@ -260,6 +258,13 @@ func isAllBytesZero(data []byte) bool {
 	}
 
 	return true
+}
+
+func convertToIP(data []byte) net.IP {
+	if isAllBytesZero(data[:12]) {
+		return net.IP(data[12:]) // IPv4 Address
+	}
+	return net.IP(data) // IPv6 Address
 }
 
 func NewRecord() (Record, error) {
@@ -305,20 +310,17 @@ func getSimpleDataType(r Record, expectedType any, field int) (any, error) {
 	return reflect.ValueOf(valPtr).Elem().Interface(), nil
 }
 
-func getIPAddr(r Record, field int) (any, error) {
+func getIP(r Record, field int) (any, error) {
 	ipBuf := make([]byte, 16) // Allocate 16 bytes (IPv6 max size)
 	fieldPtr := unsafe.Pointer(&ipBuf[0])
 	err := callFget(r, field, uintptr(fieldPtr))
 	if err != nil {
 		return nil, err
 	}
-	if isAllBytesZero(ipBuf[:12]) {
-		return net.IP(ipBuf[12:]), nil // IPv4 Address
-	}
-	return net.IP(ipBuf), nil // IPv6 Address
+	return convertToIP(ipBuf), nil
 }
 
-func getTimestamp(r Record, field int) (any, error) {
+func getTime(r Record, field int) (any, error) {
 	val := int64(0)
 	fieldPtr := unsafe.Pointer(&val)
 	err := callFget(r, field, uintptr(fieldPtr))
@@ -340,6 +342,33 @@ func getMacAddress(r Record, field int) (any, error) {
 
 }
 
+func getBasicRecord1(r Record, field int) (any, error) {
+	brec := internal.NewLnf_brec1_t()
+	defer internal.DeleteLnf_brec1_t(brec)
+	err := callFget(r, field, uintptr(brec.Swigcptr()))
+
+	if err != nil {
+		return nil, err
+	}
+
+	var output BasicRecord1
+	output.First = time.Time(time.UnixMilli(int64(brec.GetFirst())))
+	output.Last = time.Time(time.UnixMilli(int64(brec.GetLast())))
+	output.Prot = brec.GetProt()
+	output.SrcPort = brec.GetSrcport()
+	output.DstPort = brec.GetDstport()
+	output.Bytes = brec.GetBytes()
+	output.Pkts = brec.GetPkts()
+	output.Flows = brec.GetFlows()
+
+	srcaddr := unsafe.Slice((*byte)(unsafe.Pointer(brec.GetSrcaddr().GetData())), 16)
+	dstaddr := unsafe.Slice((*byte)(unsafe.Pointer(brec.GetDstaddr().GetData())), 16)
+
+	output.SrcAddr = convertToIP(srcaddr)
+	output.DstAddr = convertToIP(dstaddr)
+	return output, nil
+}
+
 func (r Record) GetField(field int) (any, error) {
 	expectedType, ok := fieldTypes[field]
 	var ret any
@@ -351,14 +380,17 @@ func (r Record) GetField(field int) (any, error) {
 	case uint64, uint32, uint16, uint8, float64:
 		ret, err = getSimpleDataType(r, expectedType, field)
 
-	case IPAddr:
-		ret, err = getIPAddr(r, field)
+	case net.IP:
+		ret, err = getIP(r, field)
 
-	case Timestamp:
-		ret, err = getTimestamp(r, field)
+	case time.Time:
+		ret, err = getTime(r, field)
 
 	case MacAddr: // MacAddr
 		ret, err = getMacAddress(r, field)
+
+	case BasicRecord1:
+		ret, err = getBasicRecord1(r, field)
 
 	case string:
 		panic("not implemented")

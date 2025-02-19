@@ -45,6 +45,12 @@ func main() {
 			panic("Error: Not an Acl")
 		}
 
+		val, _ = rec.GetField(libnf.FldMplsLabel)
+		mpls, ok := val.(libnf.Mpls)
+		if !ok {
+			panic("Error: Not an Mpls")
+		}
+		fmt.Println(mpls)
 		// first, _ := rec.GetField(libnf.FldFirst)
 		// srcport, _ := rec.GetField(libnf.FldSrcport)
 		// dstport, _ := rec.GetField(libnf.FldDstport)

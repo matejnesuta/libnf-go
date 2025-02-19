@@ -13,8 +13,6 @@ type Record struct {
 	allocated bool
 }
 
-type MacAddr net.HardwareAddr
-
 type BasicRecord1 struct {
 	First   time.Time // LNF_FLD_FIRST
 	Last    time.Time // LNF_FLD_LAST
@@ -33,6 +31,8 @@ type Acl struct {
 	AceId  uint32
 	XaceId uint32
 }
+
+type Mpls [10]uint32
 
 const (
 	FldFirst             int = internal.FLD_FIRST
@@ -168,11 +168,11 @@ var fieldTypes = map[int]any{
 	FldProt:              uint8(0),
 	FldSrcVlan:           uint16(0),
 	FldDstVlan:           uint16(0),
-	FldInSrcMac:          MacAddr{0},
-	FldOutSrcMac:         MacAddr{0},
-	FldInDstMac:          MacAddr{0},
-	FldOutDstMac:         MacAddr{0},
-	FldMplsLabel:         uint32(0),
+	FldInSrcMac:          net.HardwareAddr{0},
+	FldOutSrcMac:         net.HardwareAddr{0},
+	FldInDstMac:          net.HardwareAddr{0},
+	FldOutDstMac:         net.HardwareAddr{0},
+	FldMplsLabel:         Mpls{},
 	FldInput:             uint32(0),
 	FldOutput:            uint32(0),
 	FldDir:               uint8(0),
@@ -265,27 +265,6 @@ func convertToIP(data []byte) net.IP {
 		return net.IP(data[12:]) // IPv4 Address
 	}
 	return net.IP(data) // IPv6 Address
-}
-
-func NewRecord() (Record, error) {
-	var r Record
-	status := internal.Rec_init(&r.ptr)
-	if status == internal.ERR_NOMEM {
-		return r, ErrNoMem
-	} else if status == internal.ERR_OTHER {
-		return r, ErrOther
-	}
-	r.allocated = true
-	return r, nil
-}
-
-func (r *Record) Free() error {
-	if r.allocated {
-		internal.Rec_free(r.ptr)
-		r.allocated = false
-		return nil
-	}
-	return ErrOther
 }
 
 func callFget(r Record, field int, fieldPtr uintptr) error {
@@ -383,7 +362,21 @@ func getAcl(r Record, field int) (any, error) {
 	}, nil
 }
 
+func getMpls(r Record, field int) (any, error) {
+	var mpls Mpls
+	mplsPtr := unsafe.Pointer(&mpls)
+	err := callFget(r, field, uintptr(mplsPtr))
+	if err != nil {
+		return nil, err
+	}
+	return mpls, nil
+}
+
 func (r Record) GetField(field int) (any, error) {
+	if !r.allocated {
+		return nil, ErrRecordNotAllocated
+	}
+
 	expectedType, ok := fieldTypes[field]
 	var ret any
 	var err error
@@ -400,7 +393,7 @@ func (r Record) GetField(field int) (any, error) {
 	case time.Time:
 		ret, err = getTime(r, field)
 
-	case MacAddr: // MacAddr
+	case net.HardwareAddr: // MacAddr
 		ret, err = getMacAddress(r, field)
 
 	case BasicRecord1:
@@ -408,6 +401,9 @@ func (r Record) GetField(field int) (any, error) {
 
 	case Acl:
 		ret, err = getAcl(r, field)
+
+	case Mpls:
+		ret, err = getMpls(r, field)
 
 	case string:
 		panic("not implemented")
@@ -422,4 +418,43 @@ func (r Record) GetField(field int) (any, error) {
 		err = ErrUnknownFld
 	}
 	return ret, err
+}
+
+func NewRecord() (Record, error) {
+	var r Record
+	status := internal.Rec_init(&r.ptr)
+	if status == internal.ERR_NOMEM {
+		return r, ErrNoMem
+	} else if status == internal.ERR_OTHER {
+		return r, ErrOther
+	}
+	r.allocated = true
+	return r, nil
+}
+
+func (r *Record) Free() error {
+	if r.allocated {
+		internal.Rec_free(r.ptr)
+		r.allocated = false
+		return nil
+	}
+	return ErrRecordNotAllocated
+}
+func (r *Record) Clear() error {
+	if r.allocated {
+		internal.Rec_clear(r.ptr)
+		return nil
+	}
+	return ErrRecordNotAllocated
+}
+
+func (r *Record) CopyFrom(other Record) error {
+	if !r.allocated {
+		return ErrRecordNotAllocated
+	}
+	status := internal.Rec_copy(r.ptr, other.ptr)
+	if status == internal.ERR_OTHER {
+		return ErrOther
+	}
+	return nil
 }

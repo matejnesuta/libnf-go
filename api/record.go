@@ -369,6 +369,20 @@ func getBasicRecord1(r Record, field int) (any, error) {
 	return output, nil
 }
 
+func getAcl(r Record, field int) (any, error) {
+	acl := internal.NewLnf_acl_t()
+	defer internal.DeleteLnf_acl_t(acl)
+	err := callFget(r, field, uintptr(acl.Swigcptr()))
+	if err != nil {
+		return nil, err
+	}
+	return Acl{
+		AclId:  acl.GetAcl_id(),
+		AceId:  acl.GetAce_id(),
+		XaceId: acl.GetXace_id(),
+	}, nil
+}
+
 func (r Record) GetField(field int) (any, error) {
 	expectedType, ok := fieldTypes[field]
 	var ret any
@@ -391,6 +405,9 @@ func (r Record) GetField(field int) (any, error) {
 
 	case BasicRecord1:
 		ret, err = getBasicRecord1(r, field)
+
+	case Acl:
+		ret, err = getAcl(r, field)
 
 	case string:
 		panic("not implemented")

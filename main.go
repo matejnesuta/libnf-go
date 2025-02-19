@@ -7,7 +7,7 @@ import (
 
 func main() {
 	var ptr libnf.File
-	err := ptr.OpenRead("api/tests/testfiles/nfcapd.201705281555", false, false)
+	err := ptr.OpenRead("api/tests/testfiles/test-file.tmp", false, false)
 
 	if err != nil {
 		fmt.Println(err)
@@ -24,7 +24,7 @@ func main() {
 	filter.Init("src port 80")
 	defer filter.Free()
 	var num_of_matches uint64 = 0
-	fmt.Println("Time first seen | Source IP | Source Port | Destination IP | Destination Port | Out Bytes")
+	fmt.Println("Time first seen | Source IP | Source Port | Destination IP | Destination Port | Out Bytes | ACL ID | ACE ID | XACE ID")
 	for {
 		err = ptr.GetNextRecord(&rec)
 		if err != nil {
@@ -39,6 +39,12 @@ func main() {
 			panic("Error: Not a BasicRecord1")
 		}
 
+		val, _ = rec.GetField(libnf.FldIngressAcl)
+		acl, ok := val.(libnf.Acl)
+		if !ok {
+			panic("Error: Not an Acl")
+		}
+
 		// first, _ := rec.GetField(libnf.FldFirst)
 		// srcport, _ := rec.GetField(libnf.FldSrcport)
 		// dstport, _ := rec.GetField(libnf.FldDstport)
@@ -49,7 +55,7 @@ func main() {
 
 		// fmt.Print(first.(time.Time).Format("2006-01-02 15:04:05"), " ")
 		fmt.Print(brec.First.Format("2006-01-02 15:04:05"), " ")
-		fmt.Printf("| %s | %d | %s | %d | %d\n", brec.SrcAddr, brec.SrcPort, brec.DstAddr, brec.DstPort, brec.Bytes)
+		fmt.Printf("| %s | %d | %s | %d | %d | %d | %d | %d |\n", brec.SrcAddr, brec.SrcPort, brec.DstAddr, brec.DstPort, brec.Bytes, acl.AclId, acl.AceId, acl.XaceId)
 		num_of_matches++
 	}
 	fmt.Println("Number of matches captured by '", filter, "' filter: ", num_of_matches)

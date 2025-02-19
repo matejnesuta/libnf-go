@@ -38,7 +38,7 @@ func main() {
 		first, _ := rec.GetField(libnf.FldFirst)
 		srcport, _ := rec.GetField(libnf.FldSrcport)
 		dstport, _ := rec.GetField(libnf.FldDstport)
-		outbytes, _ := rec.GetField(libnf.FldOutBytes)
+		outbytes, _ := rec.GetField(libnf.FldDoctets)
 
 		srcip, _ := rec.GetField(libnf.FldSrcaddr)
 		dstip, _ := rec.GetField(libnf.FldDstaddr)

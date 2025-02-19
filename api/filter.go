@@ -44,6 +44,8 @@ func (f *Filter) Free() error {
 func (f Filter) Match(r Record) (bool, error) {
 	if !f.allocated {
 		return false, ErrFilterNotInit
+	} else if !r.allocated {
+		return false, ErrRecordNotAllocated
 	}
 	status := internal.Filter_match(f.ptr, r.ptr)
 	if status == 1 {

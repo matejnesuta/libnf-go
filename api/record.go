@@ -3,6 +3,7 @@ package libnf
 import (
 	"libnf/internal"
 	"net"
+	"reflect"
 	"time"
 	"unsafe"
 )
@@ -14,8 +15,26 @@ type Record struct {
 
 type IPAddr net.IP
 type MacAddr net.HardwareAddr
-type BasicRecord1 uintptr
 type Timestamp time.Time
+
+type BasicRecord1 struct {
+	First   uint64 // LNF_FLD_FIRST
+	Last    uint64 // LNF_FLD_LAST
+	SrcAddr net.IP // LNF_FLD_SRCADDR
+	DstAddr net.IP // LNF_FLD_DSTADDR
+	Prot    uint8  // LNF_FLD_PROT
+	SrcPort uint16 // LNF_FLD_SRCPORT
+	DstPort uint16 // LNF_FLD_DSTPORT
+	Bytes   uint64 // LNF_FLD_DOCTETS
+	Pkts    uint64 // LNF_FLD_DPKTS
+	Flows   uint64 // LNF_FLD_AGGR_FLOWS
+}
+
+type Acl struct {
+	AclId  uint32
+	AceId  uint32
+	XaceId uint32
+}
 
 const (
 	FldFirst             int = internal.FLD_FIRST
@@ -181,11 +200,11 @@ var fieldTypes = map[int]any{
 	FldIngressAclId:      uint32(0),
 	FldIngressAceId:      uint32(0),
 	FldIngressXaceId:     uint32(0),
-	FldIngressAcl:        uint32(0),
+	FldIngressAcl:        Acl{},
 	FldEgressAclId:       uint32(0),
 	FldEgressAceId:       uint32(0),
 	FldEgressXaceId:      uint32(0),
-	FldEgressAcl:         uint32(0),
+	FldEgressAcl:         Acl{},
 	FldUsername:          "",
 	FldIngressVrfid:      uint32(0),
 	FldEventFlag:         uint8(0),
@@ -209,7 +228,7 @@ var fieldTypes = map[int]any{
 	FldCalcBps:           float64(0),
 	FldCalcPps:           float64(0),
 	FldCalcBpp:           float64(0),
-	FldBrec1:             BasicRecord1(0),
+	FldBrec1:             BasicRecord1{},
 	FldPairPort:          uint16(0),
 	FldPairAddr:          IPAddr{0},
 	FldPairAddrAlias:     IPAddr{0},
@@ -219,7 +238,7 @@ var fieldTypes = map[int]any{
 	FldTerm:              uint8(0),
 }
 
-func IsAllBytesZero(data []byte) bool {
+func isAllBytesZero(data []byte) bool {
 	n := len(data)
 
 	// Round n down to the nearest multiple of 8
@@ -264,80 +283,94 @@ func (r *Record) Free() error {
 	return ErrOther
 }
 
+func callFget(r Record, field int, fieldPtr uintptr) error {
+	status := internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
+	if status == internal.ERR_NOTSET {
+		return ErrNotSet
+	}
+	return nil
+}
+
+func getSimpleDataType(r Record, expectedType any, field int) (any, error) {
+	expectedTypeReflect := reflect.TypeOf(expectedType)
+	if expectedTypeReflect == nil {
+		return nil, ErrUnknownFld
+	}
+	valPtr := reflect.New(expectedTypeReflect).Interface()
+	fieldPtr := unsafe.Pointer(reflect.ValueOf(valPtr).Pointer())
+	err := callFget(r, field, uintptr(fieldPtr))
+	if err != nil {
+		return nil, err
+	}
+	return reflect.ValueOf(valPtr).Elem().Interface(), nil
+}
+
+func getIPAddr(r Record, field int) (any, error) {
+	ipBuf := make([]byte, 16) // Allocate 16 bytes (IPv6 max size)
+	fieldPtr := unsafe.Pointer(&ipBuf[0])
+	err := callFget(r, field, uintptr(fieldPtr))
+	if err != nil {
+		return nil, err
+	}
+	if isAllBytesZero(ipBuf[:12]) {
+		return net.IP(ipBuf[12:]), nil // IPv4 Address
+	}
+	return net.IP(ipBuf), nil // IPv6 Address
+}
+
+func getTimestamp(r Record, field int) (any, error) {
+	val := int64(0)
+	fieldPtr := unsafe.Pointer(&val)
+	err := callFget(r, field, uintptr(fieldPtr))
+	if err != nil {
+		return nil, err
+	}
+	return time.UnixMilli(val), nil
+
+}
+
+func getMacAddress(r Record, field int) (any, error) {
+	val := [6]byte{0}
+	fieldPtr := unsafe.Pointer(&val)
+	err := callFget(r, field, uintptr(fieldPtr))
+	if err != nil {
+		return nil, err
+	}
+	return net.HardwareAddr(val[:]), nil
+
+}
+
 func (r Record) GetField(field int) (any, error) {
 	expectedType, ok := fieldTypes[field]
+	var ret any
+	var err error
 	if !ok {
 		return nil, ErrUnknownFld
 	}
-	var fieldPtr unsafe.Pointer
 	switch expectedType.(type) {
-	case uint64:
-		val := uint64(0)
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return val, nil
-
-	case uint32:
-		val := uint32(0)
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return val, nil
-
-	case uint16:
-		val := uint16(0)
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return val, nil
-
-	case uint8:
-		val := uint8(0)
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return val, nil
-
-	case int64:
-		val := int64(0)
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return val, nil
-
-	case float64:
-		val := float64(0)
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return val, nil
+	case uint64, uint32, uint16, uint8, float64:
+		ret, err = getSimpleDataType(r, expectedType, field)
 
 	case IPAddr:
-		// Assume we don't know if it's IPv4 or IPv6
-		ipBuf := make([]byte, 16) // Allocate 16 bytes (IPv6 max size)
-		fieldPtr = unsafe.Pointer(&ipBuf[0])
-
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		if IsAllBytesZero(ipBuf[:12]) {
-			return net.IP(ipBuf[12:]), nil // IPv4 Address
-		}
-		return net.IP(ipBuf), nil // IPv6 Address
+		ret, err = getIPAddr(r, field)
 
 	case Timestamp:
-		val := uint64(0)
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return time.UnixMilli(int64(val)), nil
+		ret, err = getTimestamp(r, field)
 
 	case MacAddr: // MacAddr
-		val := [6]byte{0}
-		fieldPtr = unsafe.Pointer(&val)
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return net.HardwareAddr(val[:]), nil
+		ret, err = getMacAddress(r, field)
 
 	case string:
+		panic("not implemented")
 		// Assuming the C function writes to a char buffer
-		buf := make([]byte, 64) // Adjust the size as needed
-		fieldPtr = unsafe.Pointer(&buf[0])
-		internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		return string(buf), nil
+		// buf := make([]byte, 64) // Adjust the size as needed
+		// fieldPtr = unsafe.Pointer(&buf[0])
+		// internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
+		// return string(buf), nil
 
 	default:
-		return nil, ErrUnknownFld
+		ret = nil
+		err = ErrUnknownFld
 	}
+	return ret, err
 }

@@ -372,6 +372,18 @@ func getMpls(r Record, field int) (any, error) {
 	return mpls, nil
 }
 
+// TODO test buffer ovewflow/underflow
+func getString(r Record, field int) (any, error) {
+	buf := make([]byte, internal.STRING+1) // Adjust the size as needed
+	fieldPtr := unsafe.Pointer(&buf[0])
+	err := callFget(r, field, uintptr(fieldPtr))
+	if err != nil {
+		return nil, err
+	}
+
+	return string(buf), nil
+}
+
 func (r Record) GetField(field int) (any, error) {
 	if !r.allocated {
 		return nil, ErrRecordNotAllocated
@@ -406,12 +418,7 @@ func (r Record) GetField(field int) (any, error) {
 		ret, err = getMpls(r, field)
 
 	case string:
-		panic("not implemented")
-		// Assuming the C function writes to a char buffer
-		// buf := make([]byte, 64) // Adjust the size as needed
-		// fieldPtr = unsafe.Pointer(&buf[0])
-		// internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
-		// return string(buf), nil
+		ret, err = getString(r, field)
 
 	default:
 		ret = nil

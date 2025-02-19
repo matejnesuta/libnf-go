@@ -51,6 +51,12 @@ func main() {
 			panic("Error: Not an Mpls")
 		}
 		fmt.Println(mpls)
+
+		val, err = rec.GetField(libnf.FldUsername)
+
+		fmt.Println(val)
+		fmt.Println(err)
+
 		// first, _ := rec.GetField(libnf.FldFirst)
 		// srcport, _ := rec.GetField(libnf.FldSrcport)
 		// dstport, _ := rec.GetField(libnf.FldDstport)

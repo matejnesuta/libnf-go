@@ -54,9 +54,6 @@ func Writer() {
 	exporterIp := net.IPv4(10, 10, 0, 1)
 	var exporterId uint32 = 10
 
-	var bps float64 = 1000
-
-	libnf.SetField(&rec, libnf.FldCalcBps, bps)
 	libnf.SetField(&rec, libnf.FldSrcAS, exporterId)
 	libnf.SetField(&rec, libnf.FldBrec1, brec)
 	libnf.SetField(&rec, libnf.FldIngressAcl, acl)

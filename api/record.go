@@ -281,18 +281,13 @@ func callFget(r Record, field int, fieldPtr uintptr) error {
 	return nil
 }
 
-func getSimpleDataType(r Record, expectedType any, field int) (any, error) {
-	expectedTypeReflect := reflect.TypeOf(expectedType)
-	if expectedTypeReflect == nil {
-		return nil, ErrUnknownFld
-	}
-	valPtr := reflect.New(expectedTypeReflect).Interface()
-	fieldPtr := unsafe.Pointer(reflect.ValueOf(valPtr).Pointer())
-	err := callFget(r, field, uintptr(fieldPtr))
+func getSimpleDataType[T uint8 | uint16 | uint32 | uint64 | float64](r Record, field int) (T, error) {
+	var val T
+	err := callFget(r, field, uintptr(unsafe.Pointer(&val)))
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return reflect.ValueOf(valPtr).Elem().Interface(), nil
+	return val, nil
 }
 
 func getIP(r Record, field int) (any, error) {
@@ -402,8 +397,20 @@ func (r Record) GetField(field int) (any, error) {
 		return nil, ErrUnknownFld
 	}
 	switch expectedType.(type) {
-	case uint64, uint32, uint16, uint8, float64:
-		ret, err = getSimpleDataType(r, expectedType, field)
+	case uint64:
+		ret, err = getSimpleDataType[uint64](r, field)
+
+	case uint32:
+		ret, err = getSimpleDataType[uint32](r, field)
+
+	case uint16:
+		ret, err = getSimpleDataType[uint16](r, field)
+
+	case uint8:
+		ret, err = getSimpleDataType[uint8](r, field)
+
+	case float64:
+		ret, err = getSimpleDataType[float64](r, field)
 
 	case net.IP:
 		ret, err = getIP(r, field)
@@ -434,26 +441,6 @@ func (r Record) GetField(field int) (any, error) {
 }
 
 func ipToUint32Array(ip net.IP) [4]uint32 {
-	// ip = ip.To4() // Try converting to IPv4
-	// if ip != nil {
-	// 	// IPv4 case: Single uint32
-	// 	val := binary.BigEndian.Uint32(ip)
-	// 	fmt.Println(val)
-	// 	return []uint32{0, 0, 0, val}
-	// }
-
-	// ip = ip.To16()
-	// if ip == nil {
-	// 	return nil // Invalid IP
-	// }
-
-	// // IPv6 case: Split into 4 uint32 chunks
-	// return []uint32{
-	// 	binary.BigEndian.Uint32(ip[0:4]),
-	// 	binary.BigEndian.Uint32(ip[4:8]),
-	// 	binary.BigEndian.Uint32(ip[8:12]),
-	// 	binary.BigEndian.Uint32(ip[12:16]),
-	// }
 	if ip == nil {
 		return [4]uint32{}
 	}
@@ -524,7 +511,6 @@ func SetField[T FldDataType](r *Record, field int, value T) error {
 
 	case BasicRecord1:
 		brec1 := internal.NewLnf_brec1_t()
-		defer internal.DeleteLnf_brec1_t(brec1)
 		brec1.SetFirst(uint64(v.First.UnixMilli()))
 		brec1.SetLast(uint64(v.Last.UnixMilli()))
 		brec1.SetSrcport(v.SrcPort)
@@ -535,8 +521,6 @@ func SetField[T FldDataType](r *Record, field int, value T) error {
 
 		srcaddr_t := internal.NewLnf_ip_t()
 		dstaddr_t := internal.NewLnf_ip_t()
-		defer internal.DeleteLnf_ip_t(srcaddr_t)
-		defer internal.DeleteLnf_ip_t(dstaddr_t)
 
 		srcip := ipToUint32Array(v.SrcAddr)
 		dstip := ipToUint32Array(v.DstAddr)
@@ -548,13 +532,17 @@ func SetField[T FldDataType](r *Record, field int, value T) error {
 
 		internal.Rec_fset(r.ptr, field, uintptr(brec1.Swigcptr()))
 
+		internal.DeleteLnf_brec1_t(brec1)
+		internal.DeleteLnf_ip_t(srcaddr_t)
+		internal.DeleteLnf_ip_t(dstaddr_t)
+
 	case Acl:
 		aclPtr := internal.NewLnf_acl_t()
-		defer internal.DeleteLnf_acl_t(aclPtr)
 		aclPtr.SetAcl_id(v.AclId)
 		aclPtr.SetAce_id(v.AceId)
 		aclPtr.SetXace_id(v.XaceId)
 		internal.Rec_fset(r.ptr, field, uintptr(aclPtr.Swigcptr()))
+		internal.DeleteLnf_acl_t(aclPtr)
 
 	case Mpls:
 		mplsPtr := unsafe.Pointer(&v)
@@ -563,7 +551,11 @@ func SetField[T FldDataType](r *Record, field int, value T) error {
 	case string:
 		buf := append([]byte(v), 0)
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&buf[0])))
+
+	default:
+		return ErrUnknownFld
 	}
+
 	return nil
 }
 

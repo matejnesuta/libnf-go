@@ -266,7 +266,22 @@ func (file *File) GetNextRecord(r *Record) error {
 	if status == internal.ERR_NOMEM {
 		return ErrNoMem
 	} else if status == internal.EOF {
-		return FileEof
+		return ErrFileEof
+	}
+	return nil
+}
+
+func (file *File) WriteRecord(r *Record) error {
+	if !file.opened {
+		return ErrFileNotOpened
+	} else if !r.allocated {
+		return ErrRecordNotAllocated
+	}
+	status := internal.Write(file.ptr, r.ptr)
+	if status == internal.ERR_NOMEM {
+		return ErrNoMem
+	} else if status == internal.ERR_WRITE {
+		return ErrWrite
 	}
 	return nil
 }

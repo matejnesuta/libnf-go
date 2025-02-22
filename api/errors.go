@@ -27,14 +27,15 @@ var (
 	ErrCannotOpenFile    = errors.New("cannot open file")
 	ErrFileNotOpened     = errors.New("file is not opened")
 	ErrFileAlreadyOpened = errors.New("file is already opened")
-	FileEof              = errors.New("end of file")
+	ErrFileEof           = errors.New("end of file")
 )
 
 // Record errors
 var (
-	ErrRecordNotAllocated = errors.New("record is not allocated")
-	ErrUnknownFldType     = errors.New("unknown field type")
-	ErrUnknownFld         = errors.New("unknown field")
+	ErrRecordNotAllocated   = errors.New("record is not allocated")
+	ErrUnknownFldType       = errors.New("unknown field type")
+	ErrUnknownFld           = errors.New("unknown field")
+	ErrMismatchingDataTypes = errors.New("expected field type does not match the actual data type")
 )
 
 // Filter errors

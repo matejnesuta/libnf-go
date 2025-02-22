@@ -1,6 +1,8 @@
 package libnf
 
 import (
+	"encoding/binary"
+	"fmt"
 	"libnf/internal"
 	"net"
 	"reflect"
@@ -236,6 +238,10 @@ var fieldTypes = map[int]any{
 	FldTerm:              uint8(0),
 }
 
+type FldDataType interface {
+	uint8 | uint16 | uint32 | uint64 | net.IP | time.Time | net.HardwareAddr | BasicRecord1 | Acl | Mpls | string
+}
+
 func isAllBytesZero(data []byte) bool {
 	n := len(data)
 
@@ -425,6 +431,140 @@ func (r Record) GetField(field int) (any, error) {
 		err = ErrUnknownFld
 	}
 	return ret, err
+}
+
+func ipToUint32Array(ip net.IP) [4]uint32 {
+	// ip = ip.To4() // Try converting to IPv4
+	// if ip != nil {
+	// 	// IPv4 case: Single uint32
+	// 	val := binary.BigEndian.Uint32(ip)
+	// 	fmt.Println(val)
+	// 	return []uint32{0, 0, 0, val}
+	// }
+
+	// ip = ip.To16()
+	// if ip == nil {
+	// 	return nil // Invalid IP
+	// }
+
+	// // IPv6 case: Split into 4 uint32 chunks
+	// return []uint32{
+	// 	binary.BigEndian.Uint32(ip[0:4]),
+	// 	binary.BigEndian.Uint32(ip[4:8]),
+	// 	binary.BigEndian.Uint32(ip[8:12]),
+	// 	binary.BigEndian.Uint32(ip[12:16]),
+	// }
+	if ip == nil {
+		return [4]uint32{}
+	}
+
+	// Ensure it's an IPv6 address
+	ip = ip.To16()
+	if ip == nil {
+		return [4]uint32{}
+	}
+
+	// Split the 16 bytes into 4 uint32 values
+	var result [4]uint32
+	for i := 0; i < 4; i++ {
+		result[i] = binary.LittleEndian.Uint32(ip[i*4 : (i+1)*4])
+	}
+
+	return result
+}
+
+func SetField[T FldDataType](r *Record, field int, value T) error {
+	if !r.allocated {
+		return ErrRecordNotAllocated
+	}
+
+	expectedType, ok := fieldTypes[field]
+	if !ok {
+		return ErrUnknownFld
+	}
+
+	if reflect.TypeOf(value).Kind() != reflect.TypeOf(expectedType).Kind() {
+		return ErrMismatchingDataTypes
+	}
+
+	switch v := any(value).(type) {
+	case uint64:
+		var val uint64 = v
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
+
+	case uint32:
+		var val uint32 = v
+		ptr := uintptr(unsafe.Pointer(&val))
+		fmt.Println(ptr)
+		fmt.Println(*(*uint32)(unsafe.Pointer(ptr)))
+		status := internal.Rec_fset(r.ptr, field, ptr)
+		fmt.Println(status)
+
+	case uint16:
+		val := v
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
+
+	case uint8:
+		val := v
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
+
+	// case float64:
+	// 	val := v
+	// 	internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
+
+	case net.IP:
+		ipBuf := v.To16()
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&ipBuf[0])))
+
+	case time.Time:
+		internal.Rec_fset(r.ptr, field, uintptr(v.UnixMilli()))
+
+	case net.HardwareAddr:
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&v[0])))
+
+	case BasicRecord1:
+		brec1 := internal.NewLnf_brec1_t()
+		defer internal.DeleteLnf_brec1_t(brec1)
+		brec1.SetFirst(uint64(v.First.UnixMilli()))
+		brec1.SetLast(uint64(v.Last.UnixMilli()))
+		brec1.SetSrcport(v.SrcPort)
+		brec1.SetDstport(v.DstPort)
+		brec1.SetBytes(v.Bytes)
+		brec1.SetPkts(v.Pkts)
+		brec1.SetFlows(v.Flows)
+
+		srcaddr_t := internal.NewLnf_ip_t()
+		dstaddr_t := internal.NewLnf_ip_t()
+		defer internal.DeleteLnf_ip_t(srcaddr_t)
+		defer internal.DeleteLnf_ip_t(dstaddr_t)
+
+		srcip := ipToUint32Array(v.SrcAddr)
+		dstip := ipToUint32Array(v.DstAddr)
+
+		srcaddr_t.SetData(&srcip[0])
+		dstaddr_t.SetData(&dstip[0])
+		brec1.SetSrcaddr(srcaddr_t)
+		brec1.SetDstaddr(dstaddr_t)
+
+		internal.Rec_fset(r.ptr, field, uintptr(brec1.Swigcptr()))
+
+	case Acl:
+		aclPtr := internal.NewLnf_acl_t()
+		defer internal.DeleteLnf_acl_t(aclPtr)
+		aclPtr.SetAcl_id(v.AclId)
+		aclPtr.SetAce_id(v.AceId)
+		aclPtr.SetXace_id(v.XaceId)
+		internal.Rec_fset(r.ptr, field, uintptr(aclPtr.Swigcptr()))
+
+	case Mpls:
+		mplsPtr := unsafe.Pointer(&v)
+		internal.Rec_fset(r.ptr, field, uintptr(mplsPtr))
+
+	case string:
+		buf := append([]byte(v), 0)
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&buf[0])))
+	}
+	return nil
 }
 
 func NewRecord() (Record, error) {

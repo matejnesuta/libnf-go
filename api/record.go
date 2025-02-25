@@ -2,7 +2,6 @@ package libnf
 
 import (
 	"encoding/binary"
-	"fmt"
 	"libnf/internal"
 	"net"
 	"reflect"
@@ -480,12 +479,8 @@ func SetField[T FldDataType](r *Record, field int, value T) error {
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
 
 	case uint32:
-		var val uint32 = v
-		ptr := uintptr(unsafe.Pointer(&val))
-		fmt.Println(ptr)
-		fmt.Println(*(*uint32)(unsafe.Pointer(ptr)))
-		status := internal.Rec_fset(r.ptr, field, ptr)
-		fmt.Println(status)
+		val := v
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
 
 	case uint16:
 		val := v

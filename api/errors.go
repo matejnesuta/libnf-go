@@ -45,6 +45,12 @@ var (
 	ErrFilterAlreadyInit = errors.New("filter is already initialized")
 )
 
+// MemHeap errors
+var (
+	ErrMemHeapNotAllocated = errors.New("memory heap is not allocated")
+	ErrMemHeapEnd          = errors.New("end of memory heap")
+)
+
 // Other errors
 var (
 	ErrNotSet   = errors.New("item is not set")

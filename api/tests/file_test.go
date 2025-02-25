@@ -79,3 +79,53 @@ func TestGetInfoFromUnopenedFile(t *testing.T) {
 	assert.Equal(t, libnf.ErrFileNotOpened, err)
 	assert.Equal(t, libnf.ErrFileNotOpened, file.Close())
 }
+
+func TestReadRecordFromOpenedFile(t *testing.T) {
+	var file libnf.File
+	err := file.OpenRead("testfiles/test-file.tmp", false, false)
+	assert.Equal(t, nil, err)
+	rec, _ := libnf.NewRecord()
+
+	err = file.GetNextRecord(&rec)
+	assert.Equal(t, nil, err)
+}
+
+func TestReadRecordFromUnopenedFile(t *testing.T) {
+	var file libnf.File
+	rec, _ := libnf.NewRecord()
+	err := file.GetNextRecord(&rec)
+	assert.Equal(t, libnf.ErrFileNotOpened, err)
+}
+
+func TestReadRecordFromClosedFile(t *testing.T) {
+	var file libnf.File
+	err := file.OpenRead("testfiles/test-file.tmp", false, false)
+	assert.Equal(t, nil, err)
+	rec, _ := libnf.NewRecord()
+	assert.Equal(t, nil, file.Close())
+	err = file.GetNextRecord(&rec)
+	assert.Equal(t, libnf.ErrFileNotOpened, err)
+}
+
+func TestReadRecordFromUnallocatedRecord(t *testing.T) {
+	var file libnf.File
+	err := file.OpenRead("testfiles/test-file.tmp", false, false)
+	assert.Equal(t, nil, err)
+	var rec libnf.Record
+	err = file.GetNextRecord(&rec)
+	assert.Equal(t, libnf.ErrRecordNotAllocated, err)
+}
+
+func TestReadUntilEOF(t *testing.T) {
+	var file libnf.File
+	err := file.OpenRead("testfiles/test-file.tmp", false, false)
+	assert.Equal(t, nil, err)
+	rec, _ := libnf.NewRecord()
+	for {
+		err = file.GetNextRecord(&rec)
+		if err != nil {
+			break
+		}
+	}
+	assert.Equal(t, err, libnf.ErrFileEof)
+}

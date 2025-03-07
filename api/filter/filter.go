@@ -1,6 +1,8 @@
-package libnf
+package filter
 
 import (
+	LnfErr "libnf/api/errors"
+	LnfRec "libnf/api/record"
 	"libnf/internal"
 )
 
@@ -16,16 +18,16 @@ func (f Filter) String() string {
 
 func (f *Filter) Init(expression string) error {
 	if f.allocated {
-		return ErrFilterAlreadyInit
+		return LnfErr.ErrFilterAlreadyInit
 	}
 
 	status := internal.Filter_init_v2(&f.ptr, expression)
 	if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	} else if status == internal.ERR_FILTER {
-		return ErrFilter
+		return LnfErr.ErrFilter
 	} else if status == internal.ERR_OTHER_MSG {
-		return ErrOtherMsg
+		return LnfErr.ErrOtherMsg
 	}
 	f.repr = expression
 	f.allocated = true
@@ -34,20 +36,20 @@ func (f *Filter) Init(expression string) error {
 
 func (f *Filter) Free() error {
 	if !f.allocated {
-		return ErrFilterNotInit
+		return LnfErr.ErrFilterNotInit
 	}
 	internal.Filter_free(f.ptr)
 	f.allocated = false
 	return nil
 }
 
-func (f Filter) Match(r Record) (bool, error) {
+func (f Filter) Match(r LnfRec.Record) (bool, error) {
 	if !f.allocated {
-		return false, ErrFilterNotInit
-	} else if !r.allocated {
-		return false, ErrRecordNotAllocated
+		return false, LnfErr.ErrFilterNotInit
+	} else if !r.Allocated() {
+		return false, LnfErr.ErrRecordNotAllocated
 	}
-	status := internal.Filter_match(f.ptr, r.ptr)
+	status := internal.Filter_match(f.ptr, r.GetPtr())
 	if status == 1 {
 		return true, nil
 	}

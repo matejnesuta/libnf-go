@@ -1,6 +1,8 @@
-package libnf
+package memheap
 
 import (
+	LnfErr "libnf/api/errors"
+	LnfRec "libnf/api/record"
 	"libnf/internal"
 	"unsafe"
 )
@@ -33,13 +35,17 @@ const (
 	AggrOr  int = internal.AGGR_OR
 )
 
+func (m *MemHeap) Allocated() bool {
+	return m.allocated
+}
+
 func NewMemHeap() (MemHeap, error) {
 	memHeap := MemHeap{}
 	status := internal.Mem_init(&memHeap.ptr)
 	if status == internal.ERR_NOMEM {
-		return memHeap, ErrNoMem
+		return memHeap, LnfErr.ErrNoMem
 	} else if status == internal.ERR_OTHER {
-		return memHeap, ErrOther
+		return memHeap, LnfErr.ErrOther
 	}
 
 	memHeap.allocated = true
@@ -48,7 +54,7 @@ func NewMemHeap() (MemHeap, error) {
 
 func (m *MemHeap) Free() error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
 	}
 	internal.Mem_free(m.ptr)
 	m.allocated = false
@@ -57,7 +63,7 @@ func (m *MemHeap) Free() error {
 
 func (m *MemHeap) Clear() error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
 	}
 	internal.Mem_clean(m.ptr)
 	return nil
@@ -68,14 +74,14 @@ func (m *MemHeap) Clear() error {
 //	Set the cursor position to the first record.
 func (m *MemHeap) FirstRecordPosition() (MemHeapCursor, error) {
 	if !m.allocated {
-		return MemHeapCursor{}, ErrMemHeapNotAllocated
+		return MemHeapCursor{}, LnfErr.ErrMemHeapNotAllocated
 	}
 	cursor := MemHeapCursor{}
 	status := internal.Mem_first_c(m.ptr, &cursor.ptr)
 	if status == internal.EOF {
-		return cursor, ErrFileEof
+		return cursor, LnfErr.ErrFileEof
 	} else if status == internal.ERR_NOMEM {
-		return cursor, ErrNoMem
+		return cursor, LnfErr.ErrNoMem
 	}
 	return cursor, nil
 }
@@ -85,13 +91,13 @@ func (m *MemHeap) FirstRecordPosition() (MemHeapCursor, error) {
 //	Set the cursor position to the next record.
 func (m *MemHeap) NextRecordPosition(c *MemHeapCursor) error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
 	}
 	status := internal.Mem_next_c(m.ptr, &c.ptr)
 	if status == internal.EOF {
-		return ErrFileEof
+		return LnfErr.ErrFileEof
 	} else if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	}
 	return nil
 }
@@ -99,17 +105,17 @@ func (m *MemHeap) NextRecordPosition(c *MemHeapCursor) error {
 // int 	lnf_mem_read (lnf_mem_t *lnf_mem, lnf_rec_t *rec)
 //
 //	Read next record from memheap.
-func (m *MemHeap) GetNextRecord(r *Record) error {
+func (m *MemHeap) GetNextRecord(r *LnfRec.Record) error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
-	} else if !r.allocated {
-		return ErrRecordNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
+	} else if !r.Allocated() {
+		return LnfErr.ErrRecordNotAllocated
 	}
-	status := internal.Mem_read(m.ptr, r.ptr)
+	status := internal.Mem_read(m.ptr, r.GetPtr())
 	if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	} else if status == internal.EOF {
-		return ErrMemHeapEnd
+		return LnfErr.ErrMemHeapEnd
 	}
 	return nil
 }
@@ -117,17 +123,17 @@ func (m *MemHeap) GetNextRecord(r *Record) error {
 // int 	lnf_mem_write (lnf_mem_t *lnf_mem, lnf_rec_t *rec)
 //  	Write record to memheap object.
 
-func (m *MemHeap) WriteRecord(r *Record) error {
+func (m *MemHeap) WriteRecord(r *LnfRec.Record) error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
-	} else if !r.allocated {
-		return ErrRecordNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
+	} else if !r.Allocated() {
+		return LnfErr.ErrRecordNotAllocated
 	}
-	status := internal.Mem_write(m.ptr, r.ptr)
+	status := internal.Mem_write(m.ptr, r.GetPtr())
 	if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	} else if status == internal.ERR_OTHER {
-		return ErrOther
+		return LnfErr.ErrOther
 	}
 	return nil
 }
@@ -135,17 +141,17 @@ func (m *MemHeap) WriteRecord(r *Record) error {
 // int 	lnf_mem_read_c (lnf_mem_t *lnf_mem, lnf_mem_cursor_t *cursor, lnf_rec_t *rec)
 //
 //	Read next record on the position given by cursor.
-func (m *MemHeap) GetRecordWithCursor(c *MemHeapCursor, r *Record) error {
+func (m *MemHeap) GetRecordWithCursor(c *MemHeapCursor, r *LnfRec.Record) error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
-	} else if !r.allocated {
-		return ErrRecordNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
+	} else if !r.Allocated() {
+		return LnfErr.ErrRecordNotAllocated
 	}
-	status := internal.Mem_read_c(m.ptr, c.ptr, r.ptr)
+	status := internal.Mem_read_c(m.ptr, c.ptr, r.GetPtr())
 	if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	} else if status == internal.EOF {
-		return ErrMemHeapEnd
+		return LnfErr.ErrMemHeapEnd
 	}
 	return nil
 }
@@ -153,18 +159,18 @@ func (m *MemHeap) GetRecordWithCursor(c *MemHeapCursor, r *Record) error {
 // int 	lnf_mem_lookup_c (lnf_mem_t *lnf_mem, lnf_rec_t *rec, lnf_mem_cursor_t **cursor)
 //
 //	Set the cursor position to the record identified by key fields.
-func (m *MemHeap) GetRecordWithKey(r *Record) (MemHeapCursor, error) {
+func (m *MemHeap) GetRecordWithKey(r *LnfRec.Record) (MemHeapCursor, error) {
 	if !m.allocated {
-		return MemHeapCursor{}, ErrMemHeapNotAllocated
-	} else if !r.allocated {
-		return MemHeapCursor{}, ErrRecordNotAllocated
+		return MemHeapCursor{}, LnfErr.ErrMemHeapNotAllocated
+	} else if !r.Allocated() {
+		return MemHeapCursor{}, LnfErr.ErrRecordNotAllocated
 	}
 	cursor := MemHeapCursor{}
-	status := internal.Mem_lookup_c(m.ptr, r.ptr, &cursor.ptr)
+	status := internal.Mem_lookup_c(m.ptr, r.GetPtr(), &cursor.ptr)
 	if status == internal.EOF {
-		return cursor, ErrMemHeapEnd
+		return cursor, LnfErr.ErrMemHeapEnd
 	} else if status == internal.ERR_NOMEM {
-		return cursor, ErrNoMem
+		return cursor, LnfErr.ErrNoMem
 	}
 	return cursor, nil
 }
@@ -174,13 +180,13 @@ func (m *MemHeap) GetRecordWithKey(r *Record) (MemHeapCursor, error) {
 //	Merge data from multiple threads into one thread.
 func (m *MemHeap) MergeThreads() error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
 	}
 	status := internal.Mem_merge_threads(m.ptr)
 	if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	} else if status == internal.EOF {
-		return ErrMemHeapEnd
+		return LnfErr.ErrMemHeapEnd
 	}
 	return nil
 }
@@ -190,13 +196,13 @@ func (m *MemHeap) MergeThreads() error {
 //	Set fast aggregation mode.
 func (m *MemHeap) SetFastAggr(option int) error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
 	}
 	status := internal.Mem_fastaggr(m.ptr, option)
 	if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	} else if status == internal.ERR_OTHER {
-		return ErrOther
+		return LnfErr.ErrOther
 	}
 	return nil
 }
@@ -206,11 +212,11 @@ func (m *MemHeap) SetFastAggr(option int) error {
 
 func callMemHeapSetOpt(m *MemHeap, opt int, data uintptr, size int64) error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
 	}
 	status := internal.Mem_setopt(m.ptr, opt, data, size)
 	if status == internal.ERR_OTHER {
-		return ErrOther
+		return LnfErr.ErrOther
 	}
 	return nil
 }
@@ -232,13 +238,13 @@ func (m *MemHeap) EnableNfdumpCompat() error {
 //	Set aggregation and sort option for memheap.
 func (m *MemHeap) SetAggrOptions(field int, aggrType int, sortType int, numBits int, numBits6 int) error {
 	if !m.allocated {
-		return ErrMemHeapNotAllocated
+		return LnfErr.ErrMemHeapNotAllocated
 	}
 	status := internal.Mem_fadd(m.ptr, field, aggrType+sortType, numBits, numBits6)
 	if status == internal.ERR_OTHER {
-		return ErrOther
+		return LnfErr.ErrOther
 	} else if status == internal.ERR_NOMEM {
-		return ErrNoMem
+		return LnfErr.ErrNoMem
 	}
 	return nil
 }

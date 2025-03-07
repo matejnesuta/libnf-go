@@ -1,4 +1,4 @@
-package libnf
+package errors
 
 import (
 	"errors"

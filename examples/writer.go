@@ -2,22 +2,24 @@ package examples
 
 import (
 	"fmt"
-	libnf "libnf/api"
+	LnfFld "libnf/api/fields"
+	LnfFile "libnf/api/file"
+	LnfRec "libnf/api/record"
 	"net"
 	"time"
 )
 
 // Writer is a function that demonstrates how to use the libnf package to write data to a file.
 func Writer() {
-	var ptr libnf.File
-	err := ptr.OpenWrite("api/tests/testfiles/test-file.tmp", "tmp/output.tmp", false, 0, false)
+	var ptr LnfFile.File
+	err := ptr.OpenWrite("tmp/writer.tmp", "", false, 0, false)
 
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer ptr.Close()
 
-	rec, err := libnf.NewRecord()
+	rec, err := LnfRec.NewRecord()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -26,7 +28,7 @@ func Writer() {
 	// Set the fields of the record
 
 	t := time.Now()
-	brec := libnf.BasicRecord1{
+	brec := LnfFld.BasicRecord1{
 		First:   t,
 		Last:    t,
 		SrcAddr: net.IPv4(192, 168, 1, 1),
@@ -39,13 +41,13 @@ func Writer() {
 		Flows:   10,
 	}
 
-	acl := libnf.Acl{
+	acl := LnfFld.Acl{
 		AclId:  1,
 		AceId:  2,
 		XaceId: 3,
 	}
 
-	mpls := libnf.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}
+	mpls := LnfFld.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}
 
 	username := "leopold kasing"
 
@@ -54,14 +56,14 @@ func Writer() {
 	exporterIp := net.IPv4(10, 10, 0, 1)
 	var exporterId uint32 = 10
 
-	libnf.SetField(&rec, libnf.FldSrcAS, exporterId)
-	libnf.SetField(&rec, libnf.FldBrec1, brec)
-	libnf.SetField(&rec, libnf.FldIngressAcl, acl)
-	libnf.SetField(&rec, libnf.FldMplsLabel, mpls)
-	libnf.SetField(&rec, libnf.FldUsername, username)
-	libnf.SetField(&rec, libnf.FldInSrcMac, mac)
+	LnfRec.SetField(&rec, LnfFld.FldSrcAS, exporterId)
+	LnfRec.SetField(&rec, LnfFld.FldBrec1, brec)
+	LnfRec.SetField(&rec, LnfFld.FldIngressAcl, acl)
+	LnfRec.SetField(&rec, LnfFld.FldMplsLabel, mpls)
+	LnfRec.SetField(&rec, LnfFld.FldUsername, username)
+	LnfRec.SetField(&rec, LnfFld.FldInSrcMac, mac)
 
-	libnf.SetField(&rec, libnf.FldIpNextHop, exporterIp)
+	LnfRec.SetField(&rec, LnfFld.FldIpNextHop, exporterIp)
 
 	err = ptr.WriteRecord(&rec)
 
@@ -78,8 +80,8 @@ func Writer() {
 
 	brec.SrcAddr = srcIp
 	brec.DstAddr = dstIp
-	libnf.SetField(&rec, libnf.FldExporterIp, net.IP(exporterIpBytes[:]))
-	libnf.SetField(&rec, libnf.FldBrec1, brec)
+	LnfRec.SetField(&rec, LnfFld.FldExporterIp, net.IP(exporterIpBytes[:]))
+	LnfRec.SetField(&rec, LnfFld.FldBrec1, brec)
 
 	err = ptr.WriteRecord(&rec)
 

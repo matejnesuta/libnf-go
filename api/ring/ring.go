@@ -49,7 +49,7 @@ func (r *Ring) Info(infoType int) (int, error) {
 }
 
 func (r *Ring) GetNextRecord(rec *LnfRec.Record) error {
-	if !r.Allocated() {
+	if !rec.Allocated() {
 		return LnfErr.ErrRecordNotAllocated
 	}
 

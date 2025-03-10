@@ -23,6 +23,7 @@ const (
 )
 
 const (
+	SortNone int = internal.SORT_NONE
 	SortAsc  int = internal.SORT_ASC
 	SortDesc int = internal.SORT_DESC
 )

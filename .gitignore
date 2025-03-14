@@ -2,3 +2,4 @@ libnf
 /tmp
 .vscode
 api/tmp
+.prof/

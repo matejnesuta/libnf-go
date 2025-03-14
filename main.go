@@ -3,38 +3,68 @@ package main
 import (
 	"fmt"
 	"libnf/examples"
+	"log"
 	"os"
-	"strconv"
+	"runtime/pprof"
 )
 
 func helpAndExit() {
-	fmt.Println("Usage: <program> <option>")
+	fmt.Println("Usage: <program> <option> [--profile]")
 	fmt.Println("Options:")
-	fmt.Println("  1 - Run reader()")
-	fmt.Println("  2 - Run writer()")
+	fmt.Println("  reader - Run reader()")
+	fmt.Println("  writer - Run writer()")
+	fmt.Println("  --profile - Run with CPU and memory profiling")
 	os.Exit(1)
+}
+
+func writeHeapProfile(f *os.File) {
+	if f == nil {
+		return
+	}
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		log.Fatal("could not write memory profile: ", err)
+	}
 }
 
 func main() {
 	// Check if an argument is provided
-	if len(os.Args) < 2 {
+	argc := len(os.Args)
+	if argc < 2 || argc > 3 {
 		helpAndExit()
 	}
-
 	// Parse the argument
-	option, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		fmt.Println("Error: Argument must be a number.")
-		os.Exit(1)
+	if argc == 3 {
+		if os.Args[2] == "--profile" {
+			os.Mkdir(".prof", 0755)
+			cpu, err := os.Create(".prof/cpu.prof")
+			if err != nil {
+				log.Fatal("could not create CPU profile: ", err)
+			}
+			defer cpu.Close()
+
+			if err := pprof.StartCPUProfile(cpu); err != nil {
+				log.Fatal("could not start CPU profile: ", err)
+			}
+			defer pprof.StopCPUProfile()
+
+			mem, err := os.Create(".prof/mem.prof")
+			if err != nil {
+				log.Fatal("could not create memory profile: ", err)
+			}
+			defer mem.Close()
+
+			defer writeHeapProfile(mem)
+		} else {
+			fmt.Println("Invalid option.")
+			helpAndExit()
+		}
 	}
 
-	// Call the corresponding function based on the argument
-	switch option {
-	case 2:
+	if os.Args[1] == "reader" {
 		examples.Reader()
-	case 1:
+	} else if os.Args[1] == "writer" {
 		examples.Writer()
-	default:
+	} else {
 		fmt.Println("Invalid option.")
 		helpAndExit()
 	}

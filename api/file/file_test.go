@@ -60,6 +60,46 @@ func TestGetInfo(t *testing.T) {
 	assert.Equal(t, false, file.Opened())
 }
 
+func TestGetCompressionTypeFromUncompressedFile(t *testing.T) {
+	var file LnfFile.File
+
+	err := file.OpenRead("../testfiles/nfcapd.201705281555", false, false)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, file.Opened())
+	compressionType, err := file.GetCompressionType()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, LnfFile.NoComp, compressionType)
+}
+
+func TestGetCompressionTypeFromLZOCompressedFile(t *testing.T) {
+	var file LnfFile.File
+
+	err := file.OpenRead("../testfiles/lzo-file.tmp", false, false)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, file.Opened())
+	compressionType, err := file.GetCompressionType()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, LnfFile.CompLZO, compressionType)
+}
+
+func TestGetCompressionTypeFromBZ2CompressedFile(t *testing.T) {
+	var file LnfFile.File
+
+	err := file.OpenRead("../testfiles/bz2-file.tmp", false, false)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, file.Opened())
+	compressionType, err := file.GetCompressionType()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, LnfFile.CompBZ2, compressionType)
+}
+
+func TestGetCompressionTypeFromUnopenedFile(t *testing.T) {
+	var file LnfFile.File
+	compressionType, err := file.GetCompressionType()
+	assert.Equal(t, LnfErr.ErrFileNotOpened, err)
+	assert.Equal(t, LnfFile.NoComp, compressionType)
+}
+
 func TestOpenFileMultipleTimes(t *testing.T) {
 	var file LnfFile.File
 	err := file.OpenRead("../testfiles/nfcapd.201705281555", false, false)

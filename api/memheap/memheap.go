@@ -80,7 +80,7 @@ func (m *MemHeap) FirstRecordPosition() (MemHeapCursor, error) {
 	cursor := MemHeapCursor{}
 	status := internal.Mem_first_c(m.ptr, &cursor.ptr)
 	if status == internal.EOF {
-		return cursor, LnfErr.ErrFileEof
+		return cursor, LnfErr.ErrMemHeapEnd
 	} else if status == internal.ERR_NOMEM {
 		return cursor, LnfErr.ErrNoMem
 	}
@@ -96,7 +96,7 @@ func (m *MemHeap) NextRecordPosition(c *MemHeapCursor) error {
 	}
 	status := internal.Mem_next_c(m.ptr, &c.ptr)
 	if status == internal.EOF {
-		return LnfErr.ErrFileEof
+		return LnfErr.ErrMemHeapEnd
 	} else if status == internal.ERR_NOMEM {
 		return LnfErr.ErrNoMem
 	}

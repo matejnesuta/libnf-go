@@ -99,6 +99,15 @@ func TestWriteToFreedMemHeap(t *testing.T) {
 	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
 }
 
+func TestWriteUnallocatedRecordToMemHeap(t *testing.T) {
+	memheap, _ := memheap.NewMemHeap()
+	defer memheap.Free()
+
+	rec := LnfRec.Record{}
+	err := memheap.WriteRecord(&rec)
+	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+}
+
 func TestWriteToMemHeap(t *testing.T) {
 	memHeap, _ := memheap.NewMemHeap()
 	memHeap.SetAggrOptions(LnfFld.FldSrcport, memheap.AggrKey, memheap.SortAsc, 0, 0)
@@ -257,6 +266,23 @@ func TestGetRecordWithCursorOnFreedMemHeap(t *testing.T) {
 	rec, _ := LnfRec.NewRecord()
 	err = memHeap.GetRecordWithCursor(&cursor, &rec)
 	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+}
+
+func TestFirstRecordPositionOnEmptyMemHeap(t *testing.T) {
+	memHeap, _ := memheap.NewMemHeap()
+	defer memHeap.Free()
+
+	_, err := memHeap.FirstRecordPosition()
+	assert.Equal(t, LnfErr.ErrMemHeapEnd, err)
+}
+
+func TestNextRecordPositionOnEmptyMemHeap(t *testing.T) {
+	memHeap, _ := memheap.NewMemHeap()
+	defer memHeap.Free()
+
+	var cursor memheap.MemHeapCursor
+	err := memHeap.NextRecordPosition(&cursor)
+	assert.Equal(t, LnfErr.ErrMemHeapEnd, err)
 }
 
 func TestGetRecordWithCursorOnUnallocatedRecord(t *testing.T) {
@@ -519,5 +545,4 @@ func TestNfdumpCompMode(t *testing.T) {
 		assert.Equal(t, bytes[i], brec.Bytes)
 		i++
 	}
-
 }

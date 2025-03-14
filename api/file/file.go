@@ -127,6 +127,24 @@ func (f *File) GetPacketsOther() (uint64, error) {
 	return getUint64Info(internal.INFO_PACKETS_OTHER, f)
 }
 
+func (f *File) GetCompressionType() (int, error) {
+	data, err := getBoolInfo(internal.INFO_COMPRESSED, f)
+	if err != nil {
+		return NoComp, err
+	} else if !data {
+		return NoComp, nil
+	}
+
+	data, err = getBoolInfo(internal.INFO_LZO_COMPRESSED, f)
+	if err != nil {
+		return NoComp, err
+	} else if data {
+		return CompLZO, nil
+	} else {
+		return CompBZ2, nil
+	}
+}
+
 // OpenRead opens the file in read mode.
 func (f *File) OpenRead(inputFile string, readLoop bool, weakErr bool) error {
 	if f.opened {

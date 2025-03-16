@@ -33,9 +33,9 @@ func Sorting() {
 
 	heap.Clear()
 	heap.EnableNfdumpCompat()
-	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
-	heap.SetAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.CalcBps, memheap.AggrMax, memheap.SortDesc, 0, 0)
+	heap.SetAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Last, memheap.AggrMax, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.SrcAddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
 	heap.SetAggrOptions(fields.DstAddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
 	heap.SetAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)

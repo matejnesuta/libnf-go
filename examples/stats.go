@@ -114,7 +114,7 @@ func Stats() {
 	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
 	heap.SetAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.DstAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
 	heap.SetAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)

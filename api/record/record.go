@@ -65,7 +65,7 @@ func convertToIP(data []byte) net.IP {
 	return net.IP(data) // IPv6 Address
 }
 
-func callFget(r Record, field int, fieldPtr uintptr) error {
+func callFget(r *Record, field int, fieldPtr uintptr) error {
 	status := internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
 	if status == internal.ERR_NOTSET {
 		return errors.ErrNotSet
@@ -73,7 +73,7 @@ func callFget(r Record, field int, fieldPtr uintptr) error {
 	return nil
 }
 
-func getSimpleDataType[T uint8 | uint16 | uint32 | uint64 | float64](r Record, field int) (T, error) {
+func getSimpleDataType[T uint8 | uint16 | uint32 | uint64 | float64](r *Record, field int) (T, error) {
 	var val T
 	err := callFget(r, field, uintptr(unsafe.Pointer(&val)))
 	if err != nil {
@@ -82,7 +82,7 @@ func getSimpleDataType[T uint8 | uint16 | uint32 | uint64 | float64](r Record, f
 	return val, nil
 }
 
-func getIP(r Record, field int) (any, error) {
+func getIP(r *Record, field int) (any, error) {
 	ipBuf := make([]byte, 16) // Allocate 16 bytes (IPv6 max size)
 	fieldPtr := unsafe.Pointer(&ipBuf[0])
 	err := callFget(r, field, uintptr(fieldPtr))
@@ -92,7 +92,7 @@ func getIP(r Record, field int) (any, error) {
 	return convertToIP(ipBuf), nil
 }
 
-func getTime(r Record, field int) (any, error) {
+func getTime(r *Record, field int) (any, error) {
 	val := int64(0)
 	fieldPtr := unsafe.Pointer(&val)
 	err := callFget(r, field, uintptr(fieldPtr))
@@ -103,7 +103,7 @@ func getTime(r Record, field int) (any, error) {
 
 }
 
-func getMacAddress(r Record, field int) (any, error) {
+func getMacAddress(r *Record, field int) (any, error) {
 	val := [6]byte{0}
 	fieldPtr := unsafe.Pointer(&val)
 	err := callFget(r, field, uintptr(fieldPtr))
@@ -114,7 +114,7 @@ func getMacAddress(r Record, field int) (any, error) {
 
 }
 
-func getBasicRecord1(r Record, field int) (any, error) {
+func getBasicRecord1(r *Record, field int) (any, error) {
 	brec := internal.NewLnf_brec1_t()
 	defer internal.DeleteLnf_brec1_t(brec)
 	err := callFget(r, field, uintptr(brec.Swigcptr()))
@@ -141,7 +141,7 @@ func getBasicRecord1(r Record, field int) (any, error) {
 	return output, nil
 }
 
-func getAcl(r Record, field int) (any, error) {
+func getAcl(r *Record, field int) (any, error) {
 	acl := internal.NewLnf_acl_t()
 	defer internal.DeleteLnf_acl_t(acl)
 	err := callFget(r, field, uintptr(acl.Swigcptr()))
@@ -155,7 +155,7 @@ func getAcl(r Record, field int) (any, error) {
 	}, nil
 }
 
-func getMpls(r Record, field int) (any, error) {
+func getMpls(r *Record, field int) (any, error) {
 	var mpls fields.Mpls
 	mplsPtr := unsafe.Pointer(&mpls)
 	err := callFget(r, field, uintptr(mplsPtr))
@@ -166,7 +166,7 @@ func getMpls(r Record, field int) (any, error) {
 }
 
 // TODO test buffer ovewflow/underflow
-func getString(r Record, field int) (any, error) {
+func getString(r *Record, field int) (any, error) {
 	buf := make([]byte, internal.STRING+1) // Adjust the size as needed
 	fieldPtr := unsafe.Pointer(&buf[0])
 	err := callFget(r, field, uintptr(fieldPtr))
@@ -177,7 +177,7 @@ func getString(r Record, field int) (any, error) {
 	return strings.TrimRight(string(buf), "\x00"), nil
 }
 
-func (r Record) GetField(field int) (any, error) {
+func (r *Record) GetField(field int) (any, error) {
 	if !r.allocated {
 		return nil, errors.ErrRecordNotAllocated
 	}

@@ -43,7 +43,7 @@ func (f *Filter) Free() error {
 	return nil
 }
 
-func (f Filter) Match(r LnfRec.Record) (bool, error) {
+func (f *Filter) Match(r LnfRec.Record) (bool, error) {
 	if !f.allocated {
 		return false, LnfErr.ErrFilterNotInit
 	} else if !r.Allocated() {

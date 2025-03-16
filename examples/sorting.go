@@ -1,5 +1,7 @@
 package examples
 
+// nfdump -r api/testfiles/profiling.tmp -n 10  -O bps
+
 import (
 	"fmt"
 	"libnf/api/fields"
@@ -31,7 +33,7 @@ func Sorting() {
 
 	heap.Clear()
 	heap.EnableNfdumpCompat()
-	heap.SetAggrOptions(fields.CalcBps, memheap.AggrKey, memheap.SortDesc, 0, 0)
+	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
 	heap.SetAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.SrcAddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
@@ -55,7 +57,7 @@ func Sorting() {
 
 	printHeader()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		err = heap.GetNextRecord(&rec)
 		if err != nil {
 			break

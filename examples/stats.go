@@ -1,0 +1,171 @@
+package examples
+
+// nfdump -r api/testfiles/profiling.tmp -s srcip/bps -s dstip/bps  ' port 443'
+
+import (
+	"fmt"
+	"libnf/api/fields"
+	"libnf/api/file"
+	"libnf/api/filter"
+	"libnf/api/memheap"
+	"libnf/api/record"
+)
+
+func Stats() {
+	var ptr file.File
+	err := ptr.OpenRead("api/testfiles/profiling.tmp", false, false)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	rec, err := record.NewRecord()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer rec.Free()
+
+	filter := filter.Filter{}
+	err = filter.Init("port 443")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	heap, err := memheap.NewMemHeap()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	heap.Clear()
+	heap.EnableNfdumpCompat()
+	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
+	heap.SetAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
+	heap.SetAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
+
+	for {
+		err = ptr.GetNextRecord(&rec)
+		if err != nil {
+			break
+		}
+		if match, _ := filter.Match(rec); !match {
+			continue
+		}
+		heap.WriteRecord(&rec)
+	}
+	fmt.Println("Top 10 Src IP Addr ordered by bps:")
+	fmt.Println("")
+	fmt.Print("First\t\tDuration\tSrcAddr\t\tFlows\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
+
+	for i := 0; i < 10; i++ {
+		err = heap.GetNextRecord(&rec)
+		if err != nil {
+			break
+		}
+		val, _ := rec.GetField(fields.Brec1)
+		brec, ok := val.(fields.BasicRecord1)
+		if !ok {
+			panic("Error: Not a BasicRecord1")
+		}
+
+		val, _ = rec.GetField(fields.CalcBps)
+		bps, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a float64")
+		}
+
+		val, _ = rec.GetField(fields.CalcPps)
+		pps, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a float64")
+		}
+
+		val, _ = rec.GetField(fields.CalcBpp)
+		bpp, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a float64")
+		}
+
+		fmt.Print(brec.First.Format("2006-01-02 15:04:05"), " ")
+		fmt.Printf("| %.3f | %-15s| %8d | %4d | %4d | %4f | %4f | %4f \n", brec.Last.Sub(brec.First).Seconds(), brec.SrcAddr, brec.Flows, brec.Pkts, brec.Bytes, pps, bps, bpp)
+	}
+	heap.Free()
+	heap, err = memheap.NewMemHeap()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer heap.Free()
+
+	ptr.Close()
+	err = ptr.OpenRead("api/testfiles/profiling.tmp", false, false)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer ptr.Close()
+
+	heap.Clear()
+	heap.EnableNfdumpCompat()
+	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
+	heap.SetAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.DstAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
+	heap.SetAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
+
+	for {
+		err = ptr.GetNextRecord(&rec)
+		if err != nil {
+			break
+		}
+		if match, _ := filter.Match(rec); !match {
+			continue
+		}
+		heap.WriteRecord(&rec)
+	}
+	fmt.Println("")
+	fmt.Println("Top 10 Dst IP Addr ordered by bps:")
+	fmt.Println("")
+	fmt.Print("First\t\tDuration\tSrcAddr\t\tFlows\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
+
+	for i := 0; i < 10; i++ {
+		err = heap.GetNextRecord(&rec)
+		if err != nil {
+			break
+		}
+		val, _ := rec.GetField(fields.Brec1)
+		brec, ok := val.(fields.BasicRecord1)
+		if !ok {
+			panic("Error: Not a BasicRecord1")
+		}
+
+		val, _ = rec.GetField(fields.CalcBps)
+		bps, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a float64")
+		}
+
+		val, _ = rec.GetField(fields.CalcPps)
+		pps, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a float64")
+		}
+
+		val, _ = rec.GetField(fields.CalcBpp)
+		bpp, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a float64")
+		}
+
+		fmt.Print(brec.First.Format("2006-01-02 15:04:05"), " ")
+		fmt.Printf("| %.3f | %-15s| %8d | %4d | %4d | %4f | %4f | %4f \n", brec.Last.Sub(brec.First).Seconds(), brec.DstAddr, brec.Flows, brec.Pkts, brec.Bytes, pps, bps, bpp)
+	}
+}

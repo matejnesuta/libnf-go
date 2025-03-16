@@ -57,7 +57,7 @@ func Sorting() {
 
 	printHeader()
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 10; i++ {
 		err = heap.GetNextRecord(&rec)
 		if err != nil {
 			break

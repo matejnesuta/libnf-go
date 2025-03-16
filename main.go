@@ -69,6 +69,8 @@ func main() {
 		examples.Filtering()
 	} else if os.Args[1] == "sorting" {
 		examples.Sorting()
+	} else if os.Args[1] == "stats" {
+		examples.Stats()
 	} else {
 		fmt.Println("Invalid option.")
 		helpAndExit()

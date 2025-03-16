@@ -13,6 +13,7 @@ func helpAndExit() {
 	fmt.Println("Options:")
 	fmt.Println("  reader - Run reader()")
 	fmt.Println("  writer - Run writer()")
+	fmt.Println("  filtering - Run filtering()")
 	fmt.Println("  --profile - Run with CPU and memory profiling")
 	os.Exit(1)
 }
@@ -64,6 +65,10 @@ func main() {
 		examples.Reader()
 	} else if os.Args[1] == "writer" {
 		examples.Writer()
+	} else if os.Args[1] == "filtering" {
+		examples.Filtering()
+	} else if os.Args[1] == "sorting" {
+		examples.Sorting()
 	} else {
 		fmt.Println("Invalid option.")
 		helpAndExit()

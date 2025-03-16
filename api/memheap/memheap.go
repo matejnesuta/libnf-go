@@ -29,11 +29,12 @@ const (
 )
 
 const (
-	AggrKey int = internal.AGGR_KEY
-	AggrSum int = internal.AGGR_SUM
-	AggrMin int = internal.AGGR_MIN
-	AggrMax int = internal.AGGR_MAX
-	AggrOr  int = internal.AGGR_OR
+	AggrAuto int = internal.AGGR_AUTO
+	AggrKey  int = internal.AGGR_KEY
+	AggrSum  int = internal.AGGR_SUM
+	AggrMin  int = internal.AGGR_MIN
+	AggrMax  int = internal.AGGR_MAX
+	AggrOr   int = internal.AGGR_OR
 )
 
 func (m *MemHeap) Allocated() bool {

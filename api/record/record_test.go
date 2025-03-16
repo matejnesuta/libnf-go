@@ -2,10 +2,10 @@ package record_test
 
 import (
 	"fmt"
-	LnfErr "libnf/api/errors"
-	LnfFld "libnf/api/fields"
-	LnfFile "libnf/api/file"
-	LnfRec "libnf/api/record"
+	"libnf/api/errors"
+	"libnf/api/fields"
+	"libnf/api/file"
+	"libnf/api/record"
 	"net"
 	"testing"
 	"time"
@@ -14,7 +14,7 @@ import (
 )
 
 func TestRecordInit(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, rec.Allocated(), true)
 	err = rec.Free()
@@ -23,26 +23,26 @@ func TestRecordInit(t *testing.T) {
 }
 
 func TestFreeUnallocatedRecord(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	err = rec.Free()
 	assert.Equal(t, nil, err)
 	err = rec.Free()
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestGetBrec1FromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldBrec1)
-	brec, ok := val.(LnfFld.BasicRecord1)
+	val, err := rec.GetField(fields.Brec1)
+	brec, ok := val.(fields.BasicRecord1)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
@@ -59,17 +59,17 @@ func TestGetBrec1FromRecord(t *testing.T) {
 }
 
 func TestGetBrec1WithIPv6FromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv6-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldBrec1)
-	brec, ok := val.(LnfFld.BasicRecord1)
+	val, err := rec.GetField(fields.Brec1)
+	brec, ok := val.(fields.BasicRecord1)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
@@ -86,17 +86,17 @@ func TestGetBrec1WithIPv6FromRecord(t *testing.T) {
 }
 
 func TestGetAclFromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldIngressAcl)
-	acl, ok := val.(LnfFld.Acl)
+	val, err := rec.GetField(fields.IngressAcl)
+	acl, ok := val.(fields.Acl)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
@@ -106,17 +106,17 @@ func TestGetAclFromRecord(t *testing.T) {
 }
 
 func TestGetMplsFromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldMplsLabel)
-	mpls, ok := val.(LnfFld.Mpls)
+	val, err := rec.GetField(fields.MplsLabel)
+	mpls, ok := val.(fields.Mpls)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
@@ -133,16 +133,16 @@ func TestGetMplsFromRecord(t *testing.T) {
 }
 
 func TestGetMacFromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldInSrcMac)
+	val, err := rec.GetField(fields.InSrcMac)
 	mac, ok := val.(net.HardwareAddr)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -151,16 +151,16 @@ func TestGetMacFromRecord(t *testing.T) {
 }
 
 func TestGetUsernameFromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldUsername)
+	val, err := rec.GetField(fields.Username)
 	username, ok := val.(string)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -169,16 +169,16 @@ func TestGetUsernameFromRecord(t *testing.T) {
 }
 
 func TestGetIpFromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldSrcaddr)
+	val, err := rec.GetField(fields.SrcAddr)
 	ip, ok := val.(net.IP)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -187,16 +187,16 @@ func TestGetIpFromRecord(t *testing.T) {
 }
 
 func TestGetUint32FromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldIngressAclId)
+	val, err := rec.GetField(fields.IngressAclId)
 	id, ok := val.(uint32)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -205,16 +205,16 @@ func TestGetUint32FromRecord(t *testing.T) {
 }
 
 func TestGetUint16FromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldSrcport)
+	val, err := rec.GetField(fields.SrcPort)
 	port, ok := val.(uint16)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -223,16 +223,16 @@ func TestGetUint16FromRecord(t *testing.T) {
 }
 
 func TestGetUint8FromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldProt)
+	val, err := rec.GetField(fields.Prot)
 	prot, ok := val.(uint8)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -241,16 +241,16 @@ func TestGetUint8FromRecord(t *testing.T) {
 }
 
 func TestGetUint64FromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldDoctets)
+	val, err := rec.GetField(fields.Doctets)
 	doctets, ok := val.(uint64)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -259,16 +259,16 @@ func TestGetUint64FromRecord(t *testing.T) {
 }
 
 func TestGetFloat64FromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv6-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldCalcBps)
+	val, err := rec.GetField(fields.CalcBps)
 	bps, ok := val.(float64)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -277,16 +277,16 @@ func TestGetFloat64FromRecord(t *testing.T) {
 }
 
 func TestGetTimeFromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv6-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldFirst)
+	val, err := rec.GetField(fields.First)
 	first, ok := val.(time.Time)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -295,56 +295,56 @@ func TestGetTimeFromRecord(t *testing.T) {
 }
 
 func TestGetUnsetFieldFromRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldIpNextHop)
-	assert.Equal(t, LnfErr.ErrNotSet, err)
+	val, err := rec.GetField(fields.IpNextHop)
+	assert.Equal(t, errors.ErrNotSet, err)
 	assert.Equal(t, nil, val)
 }
 
 func TestGetFieldFromUnallocatedRecord(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	err = rec.Free()
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldIpNextHop)
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	val, err := rec.GetField(fields.IpNextHop)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 	assert.Equal(t, nil, val)
 }
 
 func TestGetNonexistentField(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	defer rec.Free()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec)
 
 	val, err := rec.GetField(999)
-	assert.Equal(t, LnfErr.ErrUnknownFld, err)
+	assert.Equal(t, errors.ErrUnknownFld, err)
 	assert.Equal(t, nil, val)
 }
 
 func TestCopyRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
 
-	rec1, err := LnfRec.NewRecord()
+	rec1, err := record.NewRecord()
 	assert.Equal(t, nil, err)
-	rec2, err := LnfRec.NewRecord()
+	rec2, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	ptr.GetNextRecord(&rec1)
 	defer rec1.Free()
@@ -353,12 +353,12 @@ func TestCopyRecord(t *testing.T) {
 	err = rec1.CopyFrom(rec2)
 	assert.Equal(t, nil, err)
 
-	val1, err := rec1.GetField(LnfFld.FldSrcaddr)
+	val1, err := rec1.GetField(fields.SrcAddr)
 	ip1, ok := val1.(net.IP)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
-	val2, err := rec2.GetField(LnfFld.FldSrcaddr)
+	val2, err := rec2.GetField(fields.SrcAddr)
 	ip2, ok := val2.(net.IP)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -367,13 +367,13 @@ func TestCopyRecord(t *testing.T) {
 }
 
 func TestCopyFromUnallocatedRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
-	rec1, err := LnfRec.NewRecord()
+	rec1, err := record.NewRecord()
 	assert.Equal(t, nil, err)
-	rec2, err := LnfRec.NewRecord()
+	rec2, err := record.NewRecord()
 	ptr.GetNextRecord(&rec2)
 	defer rec1.Free()
 
@@ -382,17 +382,17 @@ func TestCopyFromUnallocatedRecord(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	err = rec1.CopyFrom(rec2)
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestCopyToUnallocatedRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
-	rec1, err := LnfRec.NewRecord()
+	rec1, err := record.NewRecord()
 	assert.Equal(t, nil, err)
-	rec2, err := LnfRec.NewRecord()
+	rec2, err := record.NewRecord()
 	ptr.GetNextRecord(&rec2)
 	defer rec2.Free()
 
@@ -401,20 +401,20 @@ func TestCopyToUnallocatedRecord(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	err = rec1.CopyFrom(rec2)
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestClearRecord(t *testing.T) {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("../testfiles/ipv4-file.tmp", false, false)
 	assert.Equal(t, nil, err)
 	defer ptr.Close()
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
 	ptr.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldSrcaddr)
+	val, err := rec.GetField(fields.SrcAddr)
 	ip, ok := val.(net.IP)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -423,7 +423,7 @@ func TestClearRecord(t *testing.T) {
 	err = rec.Clear()
 	assert.Equal(t, nil, err)
 
-	val, err = rec.GetField(LnfFld.FldSrcaddr)
+	val, err = rec.GetField(fields.SrcAddr)
 	assert.Equal(t, nil, err)
 	ip, ok = val.(net.IP)
 	assert.Equal(t, true, ok)
@@ -433,24 +433,24 @@ func TestClearRecord(t *testing.T) {
 }
 
 func TestClearUnallocatedRecord(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	err = rec.Free()
 	assert.Equal(t, nil, err)
 
 	err = rec.Clear()
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestSetFieldUint32(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldIngressAclId, uint32(25))
+	err = record.SetField(&rec, fields.IngressAclId, uint32(25))
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldIngressAclId)
+	val, err := rec.GetField(fields.IngressAclId)
 	id, ok := val.(uint32)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -459,14 +459,14 @@ func TestSetFieldUint32(t *testing.T) {
 }
 
 func TestSetFieldUint16(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldSrcport, uint16(1123))
+	err = record.SetField(&rec, fields.SrcPort, uint16(1123))
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldSrcport)
+	val, err := rec.GetField(fields.SrcPort)
 	port, ok := val.(uint16)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -475,14 +475,14 @@ func TestSetFieldUint16(t *testing.T) {
 }
 
 func TestSetFieldUint8(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldProt, uint8(6))
+	err = record.SetField(&rec, fields.Prot, uint8(6))
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldProt)
+	val, err := rec.GetField(fields.Prot)
 	prot, ok := val.(uint8)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -491,14 +491,14 @@ func TestSetFieldUint8(t *testing.T) {
 }
 
 func TestSetFieldUint64(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldDoctets, uint64(12345))
+	err = record.SetField(&rec, fields.Doctets, uint64(12345))
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldDoctets)
+	val, err := rec.GetField(fields.Doctets)
 	doctets, ok := val.(uint64)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -507,14 +507,14 @@ func TestSetFieldUint64(t *testing.T) {
 }
 
 func TestSetFieldTime(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldFirst, time.UnixMilli(11220))
+	err = record.SetField(&rec, fields.First, time.UnixMilli(11220))
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldFirst)
+	val, err := rec.GetField(fields.First)
 	first, ok := val.(time.Time)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -523,30 +523,30 @@ func TestSetFieldTime(t *testing.T) {
 }
 
 func TestSetFieldMpls(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldMplsLabel, LnfFld.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1})
+	err = record.SetField(&rec, fields.MplsLabel, fields.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1})
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldMplsLabel)
-	mpls, ok := val.(LnfFld.Mpls)
+	val, err := rec.GetField(fields.MplsLabel)
+	mpls, ok := val.(fields.Mpls)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
-	assert.Equal(t, LnfFld.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}, mpls)
+	assert.Equal(t, fields.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}, mpls)
 }
 
 func TestSetFieldMac(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldInSrcMac, net.HardwareAddr{0x01, 0x02, 0x03, 0x04, 0x05, 0x06})
+	err = record.SetField(&rec, fields.InSrcMac, net.HardwareAddr{0x01, 0x02, 0x03, 0x04, 0x05, 0x06})
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldInSrcMac)
+	val, err := rec.GetField(fields.InSrcMac)
 	mac, ok := val.(net.HardwareAddr)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -555,14 +555,14 @@ func TestSetFieldMac(t *testing.T) {
 }
 
 func TestSetFieldUsername(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
-	err = LnfRec.SetField(&rec, LnfFld.FldUsername, "testuser")
+	err = record.SetField(&rec, fields.Username, "testuser")
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldUsername)
+	val, err := rec.GetField(fields.Username)
 	username, ok := val.(string)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -571,14 +571,14 @@ func TestSetFieldUsername(t *testing.T) {
 }
 
 func TestSetFieldIp(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
-	err = LnfRec.SetField(&rec, LnfFld.FldSrcaddr, net.IPv4(192, 168, 0, 1).To4())
+	err = record.SetField(&rec, fields.SrcAddr, net.IPv4(192, 168, 0, 1).To4())
 
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldSrcaddr)
+	val, err := rec.GetField(fields.SrcAddr)
 	ip, ok := val.(net.IP)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -587,14 +587,14 @@ func TestSetFieldIp(t *testing.T) {
 }
 
 func TestSetFieldIpv6(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
-	err = LnfRec.SetField(&rec, LnfFld.FldSrcaddr, net.ParseIP("2001:67c:1220::aa:bb"))
+	err = record.SetField(&rec, fields.SrcAddr, net.ParseIP("2001:67c:1220::aa:bb"))
 
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldSrcaddr)
+	val, err := rec.GetField(fields.SrcAddr)
 	ip, ok := val.(net.IP)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
@@ -603,26 +603,26 @@ func TestSetFieldIpv6(t *testing.T) {
 }
 
 func TestSetFieldAcl(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
-	err = LnfRec.SetField(&rec, LnfFld.FldIngressAcl, LnfFld.Acl{25, 25, 25})
+	err = record.SetField(&rec, fields.IngressAcl, fields.Acl{25, 25, 25})
 
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldIngressAcl)
-	acl, ok := val.(LnfFld.Acl)
+	val, err := rec.GetField(fields.IngressAcl)
+	acl, ok := val.(fields.Acl)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
-	assert.Equal(t, LnfFld.Acl{25, 25, 25}, acl)
+	assert.Equal(t, fields.Acl{25, 25, 25}, acl)
 }
 
 func TestSetFieldBrec1(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
-	input := LnfFld.BasicRecord1{
+	input := fields.BasicRecord1{
 		Prot:    6,
 		SrcPort: 1123,
 		DstPort: 80,
@@ -636,12 +636,12 @@ func TestSetFieldBrec1(t *testing.T) {
 	}
 
 	fmt.Println([]byte(input.SrcAddr))
-	err = LnfRec.SetField(&rec, LnfFld.FldBrec1, input)
+	err = record.SetField(&rec, fields.Brec1, input)
 
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldBrec1)
-	brec, ok := val.(LnfFld.BasicRecord1)
+	val, err := rec.GetField(fields.Brec1)
+	brec, ok := val.(fields.BasicRecord1)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
@@ -658,10 +658,10 @@ func TestSetFieldBrec1(t *testing.T) {
 }
 
 func TestSetFieldBrec1Ipv6(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
-	err = LnfRec.SetField(&rec, LnfFld.FldBrec1, LnfFld.BasicRecord1{
+	err = record.SetField(&rec, fields.Brec1, fields.BasicRecord1{
 		Prot:    6,
 		SrcPort: 1123,
 		DstPort: 80,
@@ -676,8 +676,8 @@ func TestSetFieldBrec1Ipv6(t *testing.T) {
 
 	assert.Equal(t, nil, err)
 
-	val, err := rec.GetField(LnfFld.FldBrec1)
-	brec, ok := val.(LnfFld.BasicRecord1)
+	val, err := rec.GetField(fields.Brec1)
+	brec, ok := val.(fields.BasicRecord1)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, nil, err)
 
@@ -694,29 +694,29 @@ func TestSetFieldBrec1Ipv6(t *testing.T) {
 }
 
 func TestSetFieldUnknownField(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
-	err = LnfRec.SetField(&rec, 999, "test")
+	err = record.SetField(&rec, 999, "test")
 
-	assert.Equal(t, LnfErr.ErrUnknownFld, err)
+	assert.Equal(t, errors.ErrUnknownFld, err)
 }
 
 func TestSetFieldMismatchingDataTypes(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
-	err = LnfRec.SetField(&rec, LnfFld.FldSrcaddr, uint32(25))
+	err = record.SetField(&rec, fields.SrcAddr, uint32(25))
 
-	assert.Equal(t, LnfErr.ErrMismatchingDataTypes, err)
+	assert.Equal(t, errors.ErrMismatchingDataTypes, err)
 }
 
 func TestSetFieldUnallocatedRecord(t *testing.T) {
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	err = rec.Free()
 	assert.Equal(t, nil, err)
 
-	err = LnfRec.SetField(&rec, LnfFld.FldSrcaddr, net.IPv4(192, 168, 0, 1).To4())
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	err = record.SetField(&rec, fields.SrcAddr, net.IPv4(192, 168, 0, 1).To4())
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }

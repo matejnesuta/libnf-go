@@ -2,13 +2,13 @@ package examples
 
 import (
 	"fmt"
-	LnfFld "libnf/api/fields"
-	LnfFile "libnf/api/file"
-	LnfRec "libnf/api/record"
+	fields "libnf/api/fields"
+	file "libnf/api/file"
+	record "libnf/api/record"
 )
 
 func Reader() {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenRead("api/testfiles/profiling.tmp", false, false)
 
 	if err != nil {
@@ -16,7 +16,7 @@ func Reader() {
 	}
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -28,8 +28,8 @@ func Reader() {
 		if err != nil {
 			break
 		}
-		val, _ := rec.GetField(LnfFld.FldBrec1)
-		brec, ok := val.(LnfFld.BasicRecord1)
+		val, _ := rec.GetField(fields.Brec1)
+		brec, ok := val.(fields.BasicRecord1)
 		if !ok {
 			panic("Error: Not a BasicRecord1")
 		}

@@ -2,8 +2,8 @@ package record
 
 import (
 	"encoding/binary"
-	LnfErr "libnf/api/errors"
-	LnfFld "libnf/api/fields"
+	"libnf/api/errors"
+	"libnf/api/fields"
 	"libnf/internal"
 	"net"
 	"reflect"
@@ -68,7 +68,7 @@ func convertToIP(data []byte) net.IP {
 func callFget(r Record, field int, fieldPtr uintptr) error {
 	status := internal.Rec_fget(r.ptr, field, uintptr(fieldPtr))
 	if status == internal.ERR_NOTSET {
-		return LnfErr.ErrNotSet
+		return errors.ErrNotSet
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func getBasicRecord1(r Record, field int) (any, error) {
 		return nil, err
 	}
 
-	var output LnfFld.BasicRecord1
+	var output fields.BasicRecord1
 	output.First = time.Time(time.UnixMilli(int64(brec.GetFirst())))
 	output.Last = time.Time(time.UnixMilli(int64(brec.GetLast())))
 	output.Prot = brec.GetProt()
@@ -148,7 +148,7 @@ func getAcl(r Record, field int) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return LnfFld.Acl{
+	return fields.Acl{
 		AclId:  acl.GetAcl_id(),
 		AceId:  acl.GetAce_id(),
 		XaceId: acl.GetXace_id(),
@@ -156,7 +156,7 @@ func getAcl(r Record, field int) (any, error) {
 }
 
 func getMpls(r Record, field int) (any, error) {
-	var mpls LnfFld.Mpls
+	var mpls fields.Mpls
 	mplsPtr := unsafe.Pointer(&mpls)
 	err := callFget(r, field, uintptr(mplsPtr))
 	if err != nil {
@@ -179,14 +179,14 @@ func getString(r Record, field int) (any, error) {
 
 func (r Record) GetField(field int) (any, error) {
 	if !r.allocated {
-		return nil, LnfErr.ErrRecordNotAllocated
+		return nil, errors.ErrRecordNotAllocated
 	}
 
-	expectedType, ok := LnfFld.FieldTypes[field]
+	expectedType, ok := fields.FieldTypes[field]
 	var ret any
 	var err error
 	if !ok {
-		return nil, LnfErr.ErrUnknownFld
+		return nil, errors.ErrUnknownFld
 	}
 	switch expectedType.(type) {
 	case uint64:
@@ -213,13 +213,13 @@ func (r Record) GetField(field int) (any, error) {
 	case net.HardwareAddr: // MacAddr
 		ret, err = getMacAddress(r, field)
 
-	case LnfFld.BasicRecord1:
+	case fields.BasicRecord1:
 		ret, err = getBasicRecord1(r, field)
 
-	case LnfFld.Acl:
+	case fields.Acl:
 		ret, err = getAcl(r, field)
 
-	case LnfFld.Mpls:
+	case fields.Mpls:
 		ret, err = getMpls(r, field)
 
 	case string:
@@ -227,7 +227,7 @@ func (r Record) GetField(field int) (any, error) {
 
 	default:
 		ret = nil
-		err = LnfErr.ErrUnknownFld
+		err = errors.ErrUnknownFld
 	}
 	return ret, err
 }
@@ -251,18 +251,18 @@ func ipToUint32Array(ip net.IP) [4]uint32 {
 	return result
 }
 
-func SetField[T LnfFld.FldDataType](r *Record, field int, value T) error {
+func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 	if !r.allocated {
-		return LnfErr.ErrRecordNotAllocated
+		return errors.ErrRecordNotAllocated
 	}
 
-	expectedType, ok := LnfFld.FieldTypes[field]
+	expectedType, ok := fields.FieldTypes[field]
 	if !ok {
-		return LnfErr.ErrUnknownFld
+		return errors.ErrUnknownFld
 	}
 
 	if reflect.TypeOf(value).Kind() != reflect.TypeOf(expectedType).Kind() {
-		return LnfErr.ErrMismatchingDataTypes
+		return errors.ErrMismatchingDataTypes
 	}
 
 	switch v := any(value).(type) {
@@ -296,7 +296,7 @@ func SetField[T LnfFld.FldDataType](r *Record, field int, value T) error {
 	case net.HardwareAddr:
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&v[0])))
 
-	case LnfFld.BasicRecord1:
+	case fields.BasicRecord1:
 		brec1 := internal.NewLnf_brec1_t()
 		brec1.SetFirst(uint64(v.First.UnixMilli()))
 		brec1.SetLast(uint64(v.Last.UnixMilli()))
@@ -324,7 +324,7 @@ func SetField[T LnfFld.FldDataType](r *Record, field int, value T) error {
 		internal.DeleteLnf_ip_t(srcaddr_t)
 		internal.DeleteLnf_ip_t(dstaddr_t)
 
-	case LnfFld.Acl:
+	case fields.Acl:
 		aclPtr := internal.NewLnf_acl_t()
 		aclPtr.SetAcl_id(v.AclId)
 		aclPtr.SetAce_id(v.AceId)
@@ -332,7 +332,7 @@ func SetField[T LnfFld.FldDataType](r *Record, field int, value T) error {
 		internal.Rec_fset(r.ptr, field, uintptr(aclPtr.Swigcptr()))
 		internal.DeleteLnf_acl_t(aclPtr)
 
-	case LnfFld.Mpls:
+	case fields.Mpls:
 		mplsPtr := unsafe.Pointer(&v)
 		internal.Rec_fset(r.ptr, field, uintptr(mplsPtr))
 
@@ -341,7 +341,7 @@ func SetField[T LnfFld.FldDataType](r *Record, field int, value T) error {
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&buf[0])))
 
 	default:
-		return LnfErr.ErrUnknownFld
+		return errors.ErrUnknownFld
 	}
 
 	return nil
@@ -351,9 +351,9 @@ func NewRecord() (Record, error) {
 	var r Record
 	status := internal.Rec_init(&r.ptr)
 	if status == internal.ERR_NOMEM {
-		return r, LnfErr.ErrNoMem
+		return r, errors.ErrNoMem
 	} else if status == internal.ERR_OTHER {
-		return r, LnfErr.ErrOther
+		return r, errors.ErrOther
 	}
 	r.allocated = true
 	return r, nil
@@ -365,24 +365,24 @@ func (r *Record) Free() error {
 		r.allocated = false
 		return nil
 	}
-	return LnfErr.ErrRecordNotAllocated
+	return errors.ErrRecordNotAllocated
 }
 func (r *Record) Clear() error {
 	if r.allocated {
 		internal.Rec_clear(r.ptr)
 		return nil
 	}
-	return LnfErr.ErrRecordNotAllocated
+	return errors.ErrRecordNotAllocated
 }
 
 func (r *Record) CopyFrom(other Record) error {
 	if !r.allocated || !other.allocated {
-		return LnfErr.ErrRecordNotAllocated
+		return errors.ErrRecordNotAllocated
 	}
 
 	status := internal.Rec_copy(r.ptr, other.ptr)
 	if status == internal.ERR_OTHER {
-		return LnfErr.ErrOther
+		return errors.ErrOther
 	}
 	return nil
 }

@@ -28,205 +28,205 @@ type Acl struct {
 type Mpls [10]uint32
 
 const (
-	FldFirst             int = internal.FLD_FIRST
-	FldLast              int = internal.FLD_LAST
-	FldReceived          int = internal.FLD_RECEIVED
-	FldDoctets           int = internal.FLD_DOCTETS
-	FldDpkts             int = internal.FLD_DPKTS
-	FldDpktsAlias        int = internal.FLD_DPKTS_ALIAS
-	FldOutBytes          int = internal.FLD_OUT_BYTES
-	FldOutPkts           int = internal.FLD_OUT_PKTS
-	FldOutPktsAlias      int = internal.FLD_OUT_PKTS_ALIAS
-	FldAggrFlows         int = internal.FLD_AGGR_FLOWS
-	FldSrcport           int = internal.FLD_SRCPORT
-	FldDstport           int = internal.FLD_DSTPORT
-	FldTcpFlags          int = internal.FLD_TCP_FLAGS
-	FldTcpFlagsAlias     int = internal.FLD_TCP_FLAGS_ALIAS
-	FldSrcaddr           int = internal.FLD_SRCADDR
-	FldDstaddr           int = internal.FLD_DSTADDR
-	FldSrcaddrAlias      int = internal.FLD_SRCADDR_ALIAS
-	FldDstaddrAlias      int = internal.FLD_DSTADDR_ALIAS
-	FldIpNextHop         int = internal.FLD_IP_NEXTHOP
-	FldIpNextHopAlias    int = internal.FLD_IP_NEXTHOP_ALIAS
-	FldSrcMask           int = internal.FLD_SRC_MASK
-	FldDstMask           int = internal.FLD_DST_MASK
-	FldTos               int = internal.FLD_TOS
-	FldDstTos            int = internal.FLD_DST_TOS
-	FldSrcAS             int = internal.FLD_SRCAS
-	FldDstAS             int = internal.FLD_DSTAS
-	FldBgpNextAdjacentAS int = internal.FLD_BGPNEXTADJACENTAS
-	FldBgpPrevAdjacentAS int = internal.FLD_BGPPREVADJACENTAS
-	FldBgpNextHop        int = internal.FLD_BGP_NEXTHOP
-	FldProt              int = internal.FLD_PROT
-	FldSrcVlan           int = internal.FLD_SRC_VLAN
-	FldDstVlan           int = internal.FLD_DST_VLAN
-	FldInSrcMac          int = internal.FLD_IN_SRC_MAC
-	FldOutSrcMac         int = internal.FLD_OUT_SRC_MAC
-	FldInDstMac          int = internal.FLD_IN_DST_MAC
-	FldOutDstMac         int = internal.FLD_OUT_DST_MAC
-	FldMplsLabel         int = internal.FLD_MPLS_LABEL
-	FldInput             int = internal.FLD_INPUT
-	FldOutput            int = internal.FLD_OUTPUT
-	FldDir               int = internal.FLD_DIR
-	FldFwdStatus         int = internal.FLD_FWD_STATUS
-	FldIpRouter          int = internal.FLD_IP_ROUTER
-	FldIpRouterAlias     int = internal.FLD_IP_ROUTER_ALIAS
-	FldEngineType        int = internal.FLD_ENGINE_TYPE
-	FldEngineId          int = internal.FLD_ENGINE_ID
-	FldEngineTypeAlias   int = internal.FLD_ENGINE_TYPE_ALIAS
-	FldEngineIdAlias     int = internal.FLD_ENGINE_ID_ALIAS
-	FldEventTime         int = internal.FLD_EVENT_TIME
-	FldConnId            int = internal.FLD_CONN_ID
-	FldIcmpCode          int = internal.FLD_ICMP_CODE
-	FldIcmpType          int = internal.FLD_ICMP_TYPE
-	FldIcmpCodeAlias     int = internal.FLD_ICMP_CODE_ALIAS
-	FldIcmpTypeAlias     int = internal.FLD_ICMP_TYPE_ALIAS
-	FldFwXEvent          int = internal.FLD_FW_XEVENT
-	FldFwEvent           int = internal.FLD_FW_EVENT
-	FldXlateSrcIp        int = internal.FLD_XLATE_SRC_IP
-	FldXlateDstIp        int = internal.FLD_XLATE_DST_IP
-	FldXlateSrcPort      int = internal.FLD_XLATE_SRC_PORT
-	FldXlateDstPort      int = internal.FLD_XLATE_DST_PORT
-	FldIngressAclId      int = internal.FLD_INGRESS_ACL_ID
-	FldIngressAceId      int = internal.FLD_INGRESS_ACE_ID
-	FldIngressXaceId     int = internal.FLD_INGRESS_XACE_ID
-	FldIngressAcl        int = internal.FLD_INGRESS_ACL
-	FldEgressAclId       int = internal.FLD_EGRESS_ACL_ID
-	FldEgressAceId       int = internal.FLD_EGRESS_ACE_ID
-	FldEgressXaceId      int = internal.FLD_EGRESS_XACE_ID
-	FldEgressAcl         int = internal.FLD_EGRESS_ACL
-	FldUsername          int = internal.FLD_USERNAME
-	FldIngressVrfid      int = internal.FLD_INGRESS_VRFID
-	FldEventFlag         int = internal.FLD_EVENT_FLAG
-	FldEgressVrfid       int = internal.FLD_EGRESS_VRFID
-	FldBlockStart        int = internal.FLD_BLOCK_START
-	FldBlockEnd          int = internal.FLD_BLOCK_END
-	FldBlockStep         int = internal.FLD_BLOCK_STEP
-	FldBlockSize         int = internal.FLD_BLOCK_SIZE
-	FldClientNwDelayUsec int = internal.FLD_CLIENT_NW_DELAY_USEC
-	FldServerNwDelayUsec int = internal.FLD_SERVER_NW_DELAY_USEC
-	FldApplLatencyUsec   int = internal.FLD_APPL_LATENCY_USEC
-	FldInetFamily        int = internal.FLD_INET_FAMILY
-	FldExporterIp        int = internal.FLD_EXPORTER_IP
-	FldExporterId        int = internal.FLD_EXPORTER_ID
-	FldExporterVersion   int = internal.FLD_EXPORTER_VERSION
-	FldSequenceFailures  int = internal.FLD_SEQUENCE_FAILURES
-	FldSamplerMode       int = internal.FLD_SAMPLER_MODE
-	FldSamplerInterval   int = internal.FLD_SAMPLER_INTERVAL
-	FldSamplerId         int = internal.FLD_SAMPLER_ID
-	FldCalcDuration      int = internal.FLD_CALC_DURATION
-	FldCalcBps           int = internal.FLD_CALC_BPS
-	FldCalcPps           int = internal.FLD_CALC_PPS
-	FldCalcBpp           int = internal.FLD_CALC_BPP
-	FldBrec1             int = internal.FLD_BREC1
-	FldPairPort          int = internal.FLD_PAIR_PORT
-	FldPairAddr          int = internal.FLD_PAIR_ADDR
-	FldPairAddrAlias     int = internal.FLD_PAIR_ADDR_ALIAS
-	FldPairAs            int = internal.FLD_PAIR_AS
-	FldPairIf            int = internal.FLD_PAIR_IF
-	FldPairVlan          int = internal.FLD_PAIR_VLAN
-	FldTerm              int = internal.FLD_TERM_
+	First             int = internal.FLD_FIRST
+	Last              int = internal.FLD_LAST
+	Received          int = internal.FLD_RECEIVED
+	Doctets           int = internal.FLD_DOCTETS
+	Dpkts             int = internal.FLD_DPKTS
+	DpktsAlias        int = internal.FLD_DPKTS_ALIAS
+	OutBytes          int = internal.FLD_OUT_BYTES
+	OutPkts           int = internal.FLD_OUT_PKTS
+	OutPktsAlias      int = internal.FLD_OUT_PKTS_ALIAS
+	AggrFlows         int = internal.FLD_AGGR_FLOWS
+	SrcPort           int = internal.FLD_SRCPORT
+	DstPort           int = internal.FLD_DSTPORT
+	TcpFlags          int = internal.FLD_TCP_FLAGS
+	TcpFlagsAlias     int = internal.FLD_TCP_FLAGS_ALIAS
+	SrcAddr           int = internal.FLD_SRCADDR
+	DstAddr           int = internal.FLD_DSTADDR
+	SrcAddrAlias      int = internal.FLD_SRCADDR_ALIAS
+	DstAddrAlias      int = internal.FLD_DSTADDR_ALIAS
+	IpNextHop         int = internal.FLD_IP_NEXTHOP
+	IpNextHopAlias    int = internal.FLD_IP_NEXTHOP_ALIAS
+	SrcMask           int = internal.FLD_SRC_MASK
+	DstMask           int = internal.FLD_DST_MASK
+	Tos               int = internal.FLD_TOS
+	DstTos            int = internal.FLD_DST_TOS
+	SrcAS             int = internal.FLD_SRCAS
+	DstAS             int = internal.FLD_DSTAS
+	BgpNextAdjacentAS int = internal.FLD_BGPNEXTADJACENTAS
+	BgpPrevAdjacentAS int = internal.FLD_BGPPREVADJACENTAS
+	BgpNextHop        int = internal.FLD_BGP_NEXTHOP
+	Prot              int = internal.FLD_PROT
+	SrcVlan           int = internal.FLD_SRC_VLAN
+	DstVlan           int = internal.FLD_DST_VLAN
+	InSrcMac          int = internal.FLD_IN_SRC_MAC
+	OutSrcMac         int = internal.FLD_OUT_SRC_MAC
+	InDstMac          int = internal.FLD_IN_DST_MAC
+	OutDstMac         int = internal.FLD_OUT_DST_MAC
+	MplsLabel         int = internal.FLD_MPLS_LABEL
+	Input             int = internal.FLD_INPUT
+	Output            int = internal.FLD_OUTPUT
+	Dir               int = internal.FLD_DIR
+	FwdStatus         int = internal.FLD_FWD_STATUS
+	IpRouter          int = internal.FLD_IP_ROUTER
+	IpRouterAlias     int = internal.FLD_IP_ROUTER_ALIAS
+	EngineType        int = internal.FLD_ENGINE_TYPE
+	EngineId          int = internal.FLD_ENGINE_ID
+	EngineTypeAlias   int = internal.FLD_ENGINE_TYPE_ALIAS
+	EngineIdAlias     int = internal.FLD_ENGINE_ID_ALIAS
+	EventTime         int = internal.FLD_EVENT_TIME
+	ConnId            int = internal.FLD_CONN_ID
+	IcmpCode          int = internal.FLD_ICMP_CODE
+	IcmpType          int = internal.FLD_ICMP_TYPE
+	IcmpCodeAlias     int = internal.FLD_ICMP_CODE_ALIAS
+	IcmpTypeAlias     int = internal.FLD_ICMP_TYPE_ALIAS
+	FwXEvent          int = internal.FLD_FW_XEVENT
+	FwEvent           int = internal.FLD_FW_EVENT
+	XlateSrcIp        int = internal.FLD_XLATE_SRC_IP
+	XlateDstIp        int = internal.FLD_XLATE_DST_IP
+	XlateSrcPort      int = internal.FLD_XLATE_SRC_PORT
+	XlateDstPort      int = internal.FLD_XLATE_DST_PORT
+	IngressAclId      int = internal.FLD_INGRESS_ACL_ID
+	IngressAceId      int = internal.FLD_INGRESS_ACE_ID
+	IngressXaceId     int = internal.FLD_INGRESS_XACE_ID
+	IngressAcl        int = internal.FLD_INGRESS_ACL
+	EgressAclId       int = internal.FLD_EGRESS_ACL_ID
+	EgressAceId       int = internal.FLD_EGRESS_ACE_ID
+	EgressXaceId      int = internal.FLD_EGRESS_XACE_ID
+	EgressAcl         int = internal.FLD_EGRESS_ACL
+	Username          int = internal.FLD_USERNAME
+	IngressVrfid      int = internal.FLD_INGRESS_VRFID
+	EventFlag         int = internal.FLD_EVENT_FLAG
+	EgressVrfid       int = internal.FLD_EGRESS_VRFID
+	BlockStart        int = internal.FLD_BLOCK_START
+	BlockEnd          int = internal.FLD_BLOCK_END
+	BlockStep         int = internal.FLD_BLOCK_STEP
+	BlockSize         int = internal.FLD_BLOCK_SIZE
+	ClientNwDelayUsec int = internal.FLD_CLIENT_NW_DELAY_USEC
+	ServerNwDelayUsec int = internal.FLD_SERVER_NW_DELAY_USEC
+	ApplLatencyUsec   int = internal.FLD_APPL_LATENCY_USEC
+	InetFamily        int = internal.FLD_INET_FAMILY
+	ExporterIp        int = internal.FLD_EXPORTER_IP
+	ExporterId        int = internal.FLD_EXPORTER_ID
+	ExporterVersion   int = internal.FLD_EXPORTER_VERSION
+	SequenceFailures  int = internal.FLD_SEQUENCE_FAILURES
+	SamplerMode       int = internal.FLD_SAMPLER_MODE
+	SamplerInterval   int = internal.FLD_SAMPLER_INTERVAL
+	SamplerId         int = internal.FLD_SAMPLER_ID
+	CalcDuration      int = internal.FLD_CALC_DURATION
+	CalcBps           int = internal.FLD_CALC_BPS
+	CalcPps           int = internal.FLD_CALC_PPS
+	CalcBpp           int = internal.FLD_CALC_BPP
+	Brec1             int = internal.FLD_BREC1
+	PairPort          int = internal.FLD_PAIR_PORT
+	PairAddr          int = internal.FLD_PAIR_ADDR
+	PairAddrAlias     int = internal.FLD_PAIR_ADDR_ALIAS
+	PairAs            int = internal.FLD_PAIR_AS
+	PairIf            int = internal.FLD_PAIR_IF
+	PairVlan          int = internal.FLD_PAIR_VLAN
+	Term              int = internal.FLD_TERM_
 )
 
 var FieldTypes = map[int]any{
-	FldFirst:             time.Time{},
-	FldLast:              time.Time{},
-	FldReceived:          uint64(0),
-	FldDoctets:           uint64(0),
-	FldDpkts:             uint64(0),
-	FldDpktsAlias:        uint64(0),
-	FldOutBytes:          uint64(0),
-	FldOutPkts:           uint64(0),
-	FldOutPktsAlias:      uint64(0),
-	FldAggrFlows:         uint64(0),
-	FldSrcport:           uint16(0),
-	FldDstport:           uint16(0),
-	FldTcpFlags:          uint8(0),
-	FldTcpFlagsAlias:     uint8(0),
-	FldSrcaddr:           net.IP{0},
-	FldDstaddr:           net.IP{0},
-	FldSrcaddrAlias:      net.IP{0},
-	FldDstaddrAlias:      net.IP{0},
-	FldIpNextHop:         net.IP{0},
-	FldIpNextHopAlias:    net.IP{0},
-	FldSrcMask:           uint8(0),
-	FldDstMask:           uint8(0),
-	FldTos:               uint8(0),
-	FldDstTos:            uint8(0),
-	FldSrcAS:             uint32(0),
-	FldDstAS:             uint32(0),
-	FldBgpNextAdjacentAS: uint32(0),
-	FldBgpPrevAdjacentAS: uint32(0),
-	FldBgpNextHop:        net.IP{0},
-	FldProt:              uint8(0),
-	FldSrcVlan:           uint16(0),
-	FldDstVlan:           uint16(0),
-	FldInSrcMac:          net.HardwareAddr{0},
-	FldOutSrcMac:         net.HardwareAddr{0},
-	FldInDstMac:          net.HardwareAddr{0},
-	FldOutDstMac:         net.HardwareAddr{0},
-	FldMplsLabel:         Mpls{},
-	FldInput:             uint32(0),
-	FldOutput:            uint32(0),
-	FldDir:               uint8(0),
-	FldFwdStatus:         uint8(0),
-	FldIpRouter:          net.IP{0},
-	FldIpRouterAlias:     net.IP{0},
-	FldEngineType:        uint8(0),
-	FldEngineId:          uint8(0),
-	FldEngineTypeAlias:   uint8(0),
-	FldEngineIdAlias:     uint8(0),
-	FldEventTime:         uint64(0),
-	FldConnId:            uint32(0),
-	FldIcmpCode:          uint8(0),
-	FldIcmpType:          uint8(0),
-	FldIcmpCodeAlias:     uint8(0),
-	FldIcmpTypeAlias:     uint8(0),
-	FldFwXEvent:          uint16(0),
-	FldFwEvent:           uint8(0),
-	FldXlateSrcIp:        net.IP{0},
-	FldXlateDstIp:        net.IP{0},
-	FldXlateSrcPort:      uint16(0),
-	FldXlateDstPort:      uint16(0),
-	FldIngressAclId:      uint32(0),
-	FldIngressAceId:      uint32(0),
-	FldIngressXaceId:     uint32(0),
-	FldIngressAcl:        Acl{},
-	FldEgressAclId:       uint32(0),
-	FldEgressAceId:       uint32(0),
-	FldEgressXaceId:      uint32(0),
-	FldEgressAcl:         Acl{},
-	FldUsername:          "",
-	FldIngressVrfid:      uint32(0),
-	FldEventFlag:         uint8(0),
-	FldEgressVrfid:       uint32(0),
-	FldBlockStart:        uint16(0),
-	FldBlockEnd:          uint16(0),
-	FldBlockStep:         uint16(0),
-	FldBlockSize:         uint16(0),
-	FldClientNwDelayUsec: uint64(0),
-	FldServerNwDelayUsec: uint64(0),
-	FldApplLatencyUsec:   uint64(0),
-	FldInetFamily:        uint32(0),
-	FldExporterIp:        net.IP{0},
-	FldExporterId:        uint32(0),
-	FldExporterVersion:   uint32(0),
-	FldSequenceFailures:  uint32(0),
-	FldSamplerMode:       uint16(0),
-	FldSamplerInterval:   uint32(0),
-	FldSamplerId:         uint32(0),
-	FldCalcDuration:      uint64(0),
-	FldCalcBps:           float64(0),
-	FldCalcPps:           float64(0),
-	FldCalcBpp:           float64(0),
-	FldBrec1:             BasicRecord1{},
-	FldPairPort:          uint16(0),
-	FldPairAddr:          net.IP{0},
-	FldPairAddrAlias:     net.IP{0},
-	FldPairAs:            uint32(0),
-	FldPairIf:            uint16(0),
-	FldPairVlan:          uint16(0),
-	FldTerm:              uint8(0),
+	First:             time.Time{},
+	Last:              time.Time{},
+	Received:          uint64(0),
+	Doctets:           uint64(0),
+	Dpkts:             uint64(0),
+	DpktsAlias:        uint64(0),
+	OutBytes:          uint64(0),
+	OutPkts:           uint64(0),
+	OutPktsAlias:      uint64(0),
+	AggrFlows:         uint64(0),
+	SrcPort:           uint16(0),
+	DstPort:           uint16(0),
+	TcpFlags:          uint8(0),
+	TcpFlagsAlias:     uint8(0),
+	SrcAddr:           net.IP{0},
+	DstAddr:           net.IP{0},
+	SrcAddrAlias:      net.IP{0},
+	DstAddrAlias:      net.IP{0},
+	IpNextHop:         net.IP{0},
+	IpNextHopAlias:    net.IP{0},
+	SrcMask:           uint8(0),
+	DstMask:           uint8(0),
+	Tos:               uint8(0),
+	DstTos:            uint8(0),
+	SrcAS:             uint32(0),
+	DstAS:             uint32(0),
+	BgpNextAdjacentAS: uint32(0),
+	BgpPrevAdjacentAS: uint32(0),
+	BgpNextHop:        net.IP{0},
+	Prot:              uint8(0),
+	SrcVlan:           uint16(0),
+	DstVlan:           uint16(0),
+	InSrcMac:          net.HardwareAddr{0},
+	OutSrcMac:         net.HardwareAddr{0},
+	InDstMac:          net.HardwareAddr{0},
+	OutDstMac:         net.HardwareAddr{0},
+	MplsLabel:         Mpls{},
+	Input:             uint32(0),
+	Output:            uint32(0),
+	Dir:               uint8(0),
+	FwdStatus:         uint8(0),
+	IpRouter:          net.IP{0},
+	IpRouterAlias:     net.IP{0},
+	EngineType:        uint8(0),
+	EngineId:          uint8(0),
+	EngineTypeAlias:   uint8(0),
+	EngineIdAlias:     uint8(0),
+	EventTime:         uint64(0),
+	ConnId:            uint32(0),
+	IcmpCode:          uint8(0),
+	IcmpType:          uint8(0),
+	IcmpCodeAlias:     uint8(0),
+	IcmpTypeAlias:     uint8(0),
+	FwXEvent:          uint16(0),
+	FwEvent:           uint8(0),
+	XlateSrcIp:        net.IP{0},
+	XlateDstIp:        net.IP{0},
+	XlateSrcPort:      uint16(0),
+	XlateDstPort:      uint16(0),
+	IngressAclId:      uint32(0),
+	IngressAceId:      uint32(0),
+	IngressXaceId:     uint32(0),
+	IngressAcl:        Acl{},
+	EgressAclId:       uint32(0),
+	EgressAceId:       uint32(0),
+	EgressXaceId:      uint32(0),
+	EgressAcl:         Acl{},
+	Username:          "",
+	IngressVrfid:      uint32(0),
+	EventFlag:         uint8(0),
+	EgressVrfid:       uint32(0),
+	BlockStart:        uint16(0),
+	BlockEnd:          uint16(0),
+	BlockStep:         uint16(0),
+	BlockSize:         uint16(0),
+	ClientNwDelayUsec: uint64(0),
+	ServerNwDelayUsec: uint64(0),
+	ApplLatencyUsec:   uint64(0),
+	InetFamily:        uint32(0),
+	ExporterIp:        net.IP{0},
+	ExporterId:        uint32(0),
+	ExporterVersion:   uint32(0),
+	SequenceFailures:  uint32(0),
+	SamplerMode:       uint16(0),
+	SamplerInterval:   uint32(0),
+	SamplerId:         uint32(0),
+	CalcDuration:      uint64(0),
+	CalcBps:           float64(0),
+	CalcPps:           float64(0),
+	CalcBpp:           float64(0),
+	Brec1:             BasicRecord1{},
+	PairPort:          uint16(0),
+	PairAddr:          net.IP{0},
+	PairAddrAlias:     net.IP{0},
+	PairAs:            uint32(0),
+	PairIf:            uint16(0),
+	PairVlan:          uint16(0),
+	Term:              uint8(0),
 }
 
 type FldDataType interface {

@@ -2,16 +2,16 @@ package examples
 
 import (
 	"fmt"
-	LnfFld "libnf/api/fields"
-	LnfFile "libnf/api/file"
-	LnfRec "libnf/api/record"
+	"libnf/api/fields"
+	"libnf/api/file"
+	"libnf/api/record"
 	"net"
 	"time"
 )
 
 // Writer is a function that demonstrates how to use the libnf package to write data to a file.
 func Writer() {
-	var ptr LnfFile.File
+	var ptr file.File
 	err := ptr.OpenWrite("tmp/writer.tmp", "", false, 0, false)
 
 	if err != nil {
@@ -19,7 +19,7 @@ func Writer() {
 	}
 	defer ptr.Close()
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -28,7 +28,7 @@ func Writer() {
 	// Set the fields of the record
 
 	t := time.Now()
-	brec := LnfFld.BasicRecord1{
+	brec := fields.BasicRecord1{
 		First:   t,
 		Last:    t,
 		SrcAddr: net.IPv4(192, 168, 1, 1),
@@ -41,13 +41,13 @@ func Writer() {
 		Flows:   10,
 	}
 
-	acl := LnfFld.Acl{
+	acl := fields.Acl{
 		AclId:  1,
 		AceId:  2,
 		XaceId: 3,
 	}
 
-	mpls := LnfFld.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}
+	mpls := fields.Mpls{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}
 
 	username := "leopold kasing"
 
@@ -56,14 +56,14 @@ func Writer() {
 	exporterIp := net.IPv4(10, 10, 0, 1)
 	var exporterId uint32 = 10
 
-	LnfRec.SetField(&rec, LnfFld.FldSrcAS, exporterId)
-	LnfRec.SetField(&rec, LnfFld.FldBrec1, brec)
-	LnfRec.SetField(&rec, LnfFld.FldIngressAcl, acl)
-	LnfRec.SetField(&rec, LnfFld.FldMplsLabel, mpls)
-	LnfRec.SetField(&rec, LnfFld.FldUsername, username)
-	LnfRec.SetField(&rec, LnfFld.FldInSrcMac, mac)
+	record.SetField(&rec, fields.SrcAS, exporterId)
+	record.SetField(&rec, fields.Brec1, brec)
+	record.SetField(&rec, fields.IngressAcl, acl)
+	record.SetField(&rec, fields.MplsLabel, mpls)
+	record.SetField(&rec, fields.Username, username)
+	record.SetField(&rec, fields.InSrcMac, mac)
 
-	LnfRec.SetField(&rec, LnfFld.FldIpNextHop, exporterIp)
+	record.SetField(&rec, fields.IpNextHop, exporterIp)
 
 	err = ptr.WriteRecord(&rec)
 
@@ -80,8 +80,8 @@ func Writer() {
 
 	brec.SrcAddr = srcIp
 	brec.DstAddr = dstIp
-	LnfRec.SetField(&rec, LnfFld.FldExporterIp, net.IP(exporterIpBytes[:]))
-	LnfRec.SetField(&rec, LnfFld.FldBrec1, brec)
+	record.SetField(&rec, fields.ExporterIp, net.IP(exporterIpBytes[:]))
+	record.SetField(&rec, fields.Brec1, brec)
 
 	err = ptr.WriteRecord(&rec)
 

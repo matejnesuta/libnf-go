@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	LnfErr "libnf/api/errors"
-	LnfFld "libnf/api/fields"
+	"libnf/api/errors"
+	"libnf/api/fields"
 	"libnf/api/file"
-	LnfRec "libnf/api/record"
+	"libnf/api/record"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -34,7 +34,7 @@ func TestMemHeapDoubleFree(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	err = memHeap.Free()
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 	assert.Equal(t, false, memHeap.Allocated())
 }
 
@@ -43,9 +43,9 @@ func TestReadFromEmptyMemHeap(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, memHeap.Allocated())
 
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	err = memHeap.GetNextRecord(&rec)
-	assert.Equal(t, LnfErr.ErrMemHeapEnd, err)
+	assert.Equal(t, errors.ErrMemHeapEnd, err)
 }
 
 func TestReadFromUsingUnallocatedRecord(t *testing.T) {
@@ -53,9 +53,9 @@ func TestReadFromUsingUnallocatedRecord(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, memHeap.Allocated())
 
-	rec := LnfRec.Record{}
+	rec := record.Record{}
 	err = memHeap.GetNextRecord(&rec)
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestReadFromFreedMemHeap(t *testing.T) {
@@ -67,9 +67,9 @@ func TestReadFromFreedMemHeap(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, false, memHeap.Allocated())
 
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	err = memHeap.GetNextRecord(&rec)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestSetAggrOptionsToFreedMemHeap(t *testing.T) {
@@ -81,8 +81,8 @@ func TestSetAggrOptionsToFreedMemHeap(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, false, memHeap.Allocated())
 
-	err = memHeap.SetAggrOptions(LnfFld.FldSrcport, memheap.AggrKey, memheap.SortAsc, 0, 0)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	err = memHeap.SetAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestWriteToFreedMemHeap(t *testing.T) {
@@ -94,38 +94,38 @@ func TestWriteToFreedMemHeap(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, false, memHeap.Allocated())
 
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	err = memHeap.WriteRecord(&rec)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestWriteUnallocatedRecordToMemHeap(t *testing.T) {
 	memheap, _ := memheap.NewMemHeap()
 	defer memheap.Free()
 
-	rec := LnfRec.Record{}
+	rec := record.Record{}
 	err := memheap.WriteRecord(&rec)
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestWriteToMemHeap(t *testing.T) {
 	memHeap, _ := memheap.NewMemHeap()
-	memHeap.SetAggrOptions(LnfFld.FldSrcport, memheap.AggrKey, memheap.SortAsc, 0, 0)
+	memHeap.SetAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 	defer memHeap.Free()
 
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	defer rec.Free()
-	LnfRec.SetField(&rec, LnfFld.FldSrcport, uint16(80))
+	record.SetField(&rec, fields.SrcPort, uint16(80))
 
 	err := memHeap.WriteRecord(&rec)
 	assert.Equal(t, nil, err)
 
-	rec2, _ := LnfRec.NewRecord()
+	rec2, _ := record.NewRecord()
 	defer rec2.Free()
 	err = memHeap.GetNextRecord(&rec2)
 	assert.Equal(t, nil, err)
 
-	val, _ := rec2.GetField(LnfFld.FldSrcport)
+	val, _ := rec2.GetField(fields.SrcPort)
 	srcport := val.(uint16)
 	assert.Equal(t, uint16(80), srcport)
 }
@@ -140,15 +140,15 @@ func TestCleanFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	err = memHeap.Clear()
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestCleanMemHeap(t *testing.T) {
 	memHeap, _ := memheap.NewMemHeap()
-	memHeap.SetAggrOptions(LnfFld.FldSrcport, memheap.AggrKey, memheap.SortAsc, 0, 0)
+	memHeap.SetAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 
-	rec, _ := LnfRec.NewRecord()
-	LnfRec.SetField(&rec, LnfFld.FldSrcport, uint16(80))
+	rec, _ := record.NewRecord()
+	record.SetField(&rec, fields.SrcPort, uint16(80))
 
 	err := memHeap.WriteRecord(&rec)
 	assert.Equal(t, nil, err)
@@ -156,9 +156,9 @@ func TestCleanMemHeap(t *testing.T) {
 	err = memHeap.Clear()
 	assert.Equal(t, nil, err)
 
-	rec2, _ := LnfRec.NewRecord()
+	rec2, _ := record.NewRecord()
 	err = memHeap.GetNextRecord(&rec2)
-	assert.Equal(t, LnfErr.ErrMemHeapEnd, err)
+	assert.Equal(t, errors.ErrMemHeapEnd, err)
 }
 
 func TestSetListModeOnFreedMemHeap(t *testing.T) {
@@ -171,7 +171,7 @@ func TestSetListModeOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	err = memHeap.SetListMode()
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestSetHashBucketsOnFreedMemHeap(t *testing.T) {
@@ -184,7 +184,7 @@ func TestSetHashBucketsOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	err = memHeap.SetHashBuckets(10)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestEnableNfdumpCompatOnFreedMemHeap(t *testing.T) {
@@ -197,7 +197,7 @@ func TestEnableNfdumpCompatOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	err = memHeap.EnableNfdumpCompat()
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestSetFastAggrOnFreedMemHeap(t *testing.T) {
@@ -210,7 +210,7 @@ func TestSetFastAggrOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	err = memHeap.SetFastAggr(memheap.FastAggrNone)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestMergeThreadsOnFreedMemHeap(t *testing.T) {
@@ -223,7 +223,7 @@ func TestMergeThreadsOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	err = memHeap.MergeThreads()
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestFirstRecordPositionOnFreedMemHeap(t *testing.T) {
@@ -236,7 +236,7 @@ func TestFirstRecordPositionOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	_, err = memHeap.FirstRecordPosition()
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestNextRecordPositionOnFreedMemHeap(t *testing.T) {
@@ -250,7 +250,7 @@ func TestNextRecordPositionOnFreedMemHeap(t *testing.T) {
 
 	cursor, _ := memHeap.FirstRecordPosition()
 	err = memHeap.NextRecordPosition(&cursor)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestGetRecordWithCursorOnFreedMemHeap(t *testing.T) {
@@ -263,9 +263,9 @@ func TestGetRecordWithCursorOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, false, memHeap.Allocated())
 
 	cursor, _ := memHeap.FirstRecordPosition()
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	err = memHeap.GetRecordWithCursor(&cursor, &rec)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestFirstRecordPositionOnEmptyMemHeap(t *testing.T) {
@@ -273,7 +273,7 @@ func TestFirstRecordPositionOnEmptyMemHeap(t *testing.T) {
 	defer memHeap.Free()
 
 	_, err := memHeap.FirstRecordPosition()
-	assert.Equal(t, LnfErr.ErrMemHeapEnd, err)
+	assert.Equal(t, errors.ErrMemHeapEnd, err)
 }
 
 func TestNextRecordPositionOnEmptyMemHeap(t *testing.T) {
@@ -282,17 +282,17 @@ func TestNextRecordPositionOnEmptyMemHeap(t *testing.T) {
 
 	var cursor memheap.MemHeapCursor
 	err := memHeap.NextRecordPosition(&cursor)
-	assert.Equal(t, LnfErr.ErrMemHeapEnd, err)
+	assert.Equal(t, errors.ErrMemHeapEnd, err)
 }
 
 func TestGetRecordWithCursorOnUnallocatedRecord(t *testing.T) {
 	memHeap, _ := memheap.NewMemHeap()
-	memHeap.SetAggrOptions(LnfFld.FldSrcport, memheap.AggrKey, memheap.SortAsc, 0, 0)
+	memHeap.SetAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 
 	cursor, _ := memHeap.FirstRecordPosition()
-	rec := LnfRec.Record{}
+	rec := record.Record{}
 	err := memHeap.GetRecordWithCursor(&cursor, &rec)
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestGetRecordWithKeyOnFreedMemHeap(t *testing.T) {
@@ -304,18 +304,18 @@ func TestGetRecordWithKeyOnFreedMemHeap(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, false, memHeap.Allocated())
 
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	_, err = memHeap.GetRecordWithKey(&rec)
-	assert.Equal(t, LnfErr.ErrMemHeapNotAllocated, err)
+	assert.Equal(t, errors.ErrMemHeapNotAllocated, err)
 }
 
 func TestGetRecordWithKeyOnUnallocatedRecord(t *testing.T) {
 	memHeap, _ := memheap.NewMemHeap()
-	memHeap.SetAggrOptions(LnfFld.FldSrcport, memheap.AggrKey, memheap.SortAsc, 0, 0)
+	memHeap.SetAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 
-	rec := LnfRec.Record{}
+	rec := record.Record{}
 	_, err := memHeap.GetRecordWithKey(&rec)
-	assert.Equal(t, LnfErr.ErrRecordNotAllocated, err)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
 }
 
 func TestStatistics(t *testing.T) {
@@ -324,7 +324,7 @@ func TestStatistics(t *testing.T) {
 	defer file.Close()
 	assert.Equal(t, nil, err)
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
@@ -334,15 +334,15 @@ func TestStatistics(t *testing.T) {
 	defer memHeap.Free()
 	assert.Equal(t, nil, err)
 
-	err = memHeap.SetAggrOptions(LnfFld.FldPairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
+	err = memHeap.SetAggrOptions(fields.PairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldPairPort, memheap.AggrKey, memheap.SortNone, 0, 0)
+	err = memHeap.SetAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortNone, 0, 0)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldFirst, memheap.AggrMin, memheap.SortNone, 0, 0)
+	err = memHeap.SetAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldDoctets, memheap.AggrSum, memheap.SortDesc, 0, 0)
+	err = memHeap.SetAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortDesc, 0, 0)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldDpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
+	err = memHeap.SetAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
 	assert.Equal(t, nil, err)
 
 	for {
@@ -359,11 +359,11 @@ func TestStatistics(t *testing.T) {
 
 	var doctets [2]uint64
 	memHeap.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldDoctets)
+	val, err := rec.GetField(fields.Doctets)
 	assert.Equal(t, nil, err)
 	doctets[0] = val.(uint64)
 	memHeap.GetNextRecord(&rec)
-	val, err = rec.GetField(LnfFld.FldDoctets)
+	val, err = rec.GetField(fields.Doctets)
 	assert.Equal(t, nil, err)
 	doctets[1] = val.(uint64)
 
@@ -388,7 +388,7 @@ func TestStatisticsListMode(t *testing.T) {
 	defer file.Close()
 	assert.Equal(t, nil, err)
 
-	rec, err := LnfRec.NewRecord()
+	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)
 	defer rec.Free()
 
@@ -400,15 +400,15 @@ func TestStatisticsListMode(t *testing.T) {
 
 	err = memHeap.SetListMode()
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldPairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
+	err = memHeap.SetAggrOptions(fields.PairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldPairPort, memheap.AggrKey, memheap.SortNone, 0, 0)
+	err = memHeap.SetAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortNone, 0, 0)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldFirst, memheap.AggrMin, memheap.SortNone, 0, 0)
+	err = memHeap.SetAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldDoctets, memheap.AggrSum, memheap.SortDesc, 0, 0)
+	err = memHeap.SetAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortDesc, 0, 0)
 	assert.Equal(t, nil, err)
-	err = memHeap.SetAggrOptions(LnfFld.FldDpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
+	err = memHeap.SetAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
 	assert.Equal(t, nil, err)
 
 	for {
@@ -425,11 +425,11 @@ func TestStatisticsListMode(t *testing.T) {
 
 	var doctets [2]uint64
 	memHeap.GetNextRecord(&rec)
-	val, err := rec.GetField(LnfFld.FldDoctets)
+	val, err := rec.GetField(fields.Doctets)
 	assert.Equal(t, nil, err)
 	doctets[0] = val.(uint64)
 	memHeap.GetNextRecord(&rec)
-	val, err = rec.GetField(LnfFld.FldDoctets)
+	val, err = rec.GetField(fields.Doctets)
 	assert.Equal(t, nil, err)
 	doctets[1] = val.(uint64)
 
@@ -451,16 +451,16 @@ func TestStatisticsListMode(t *testing.T) {
 func TestCursor(t *testing.T) {
 	memHeap, _ := memheap.NewMemHeap()
 	defer memHeap.Free()
-	memHeap.SetAggrOptions(LnfFld.FldSrcport, memheap.AggrKey, memheap.SortAsc, 0, 0)
+	memHeap.SetAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	defer rec.Free()
-	LnfRec.SetField(&rec, LnfFld.FldSrcport, uint16(80))
+	record.SetField(&rec, fields.SrcPort, uint16(80))
 
 	err := memHeap.WriteRecord(&rec)
 	assert.Equal(t, nil, err)
 
-	LnfRec.SetField(&rec, LnfFld.FldSrcport, uint16(90))
+	record.SetField(&rec, fields.SrcPort, uint16(90))
 
 	err = memHeap.WriteRecord(&rec)
 	assert.Equal(t, nil, err)
@@ -471,7 +471,7 @@ func TestCursor(t *testing.T) {
 	err = memHeap.GetRecordWithCursor(&cursor, &rec)
 	assert.Equal(t, nil, err)
 
-	val, _ := rec.GetField(LnfFld.FldSrcport)
+	val, _ := rec.GetField(fields.SrcPort)
 	srcport := val.(uint16)
 	assert.Equal(t, uint16(80), srcport)
 
@@ -481,7 +481,7 @@ func TestCursor(t *testing.T) {
 	err = memHeap.GetRecordWithCursor(&cursor, &rec)
 	assert.Equal(t, nil, err)
 
-	val, _ = rec.GetField(LnfFld.FldSrcport)
+	val, _ = rec.GetField(fields.SrcPort)
 	srcport = val.(uint16)
 	assert.Equal(t, uint16(90), srcport)
 }
@@ -489,16 +489,16 @@ func TestCursor(t *testing.T) {
 func TestNfdumpCompMode(t *testing.T) {
 	memHeap, _ := memheap.NewMemHeap()
 	defer memHeap.Free()
-	memHeap.SetAggrOptions(LnfFld.FldPairPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
-	memHeap.SetAggrOptions(LnfFld.FldDpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
-	memHeap.SetAggrOptions(LnfFld.FldDoctets, memheap.AggrSum, memheap.SortNone, 0, 0)
+	memHeap.SetAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
+	memHeap.SetAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
+	memHeap.SetAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortNone, 0, 0)
 	err := memHeap.EnableNfdumpCompat()
 	assert.Equal(t, nil, err)
 
-	rec, _ := LnfRec.NewRecord()
+	rec, _ := record.NewRecord()
 	defer rec.Free()
 
-	brecs := [2]LnfFld.BasicRecord1{{
+	brecs := [2]fields.BasicRecord1{{
 		First:   time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
 		Last:    time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
 		Bytes:   uint64(20),
@@ -523,7 +523,7 @@ func TestNfdumpCompMode(t *testing.T) {
 	}}
 
 	for _, brec := range brecs {
-		LnfRec.SetField(&rec, LnfFld.FldBrec1, brec)
+		record.SetField(&rec, fields.Brec1, brec)
 		err := memHeap.WriteRecord(&rec)
 		assert.Equal(t, nil, err)
 	}
@@ -538,8 +538,8 @@ func TestNfdumpCompMode(t *testing.T) {
 		if err != nil {
 			break
 		}
-		val, _ := rec.GetField(LnfFld.FldBrec1)
-		brec := val.(LnfFld.BasicRecord1)
+		val, _ := rec.GetField(fields.Brec1)
+		brec := val.(fields.BasicRecord1)
 		assert.Equal(t, ports[i], brec.SrcPort)
 		assert.Equal(t, pkts[i], brec.Pkts)
 		assert.Equal(t, bytes[i], brec.Bytes)

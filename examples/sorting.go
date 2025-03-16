@@ -31,19 +31,19 @@ func Sorting() {
 
 	heap.Clear()
 	heap.EnableNfdumpCompat()
-	heap.SetAggrOptions(fields.FldCalcBps, memheap.AggrKey, memheap.SortDesc, 0, 0)
-	heap.SetAggrOptions(fields.FldFirst, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldLast, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldSrcaddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
-	heap.SetAggrOptions(fields.FldDstaddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
-	heap.SetAggrOptions(fields.FldSrcport, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldDstport, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldProt, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldDoctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldDpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldAggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldSrcport, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.FldDstport, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.CalcBps, memheap.AggrKey, memheap.SortDesc, 0, 0)
+	heap.SetAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.SrcAddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
+	heap.SetAggrOptions(fields.DstAddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
+	heap.SetAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.DstPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Prot, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.DstPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
 
 	for {
 		err = ptr.GetNextRecord(&rec)
@@ -60,7 +60,7 @@ func Sorting() {
 		if err != nil {
 			break
 		}
-		val, _ := rec.GetField(fields.FldBrec1)
+		val, _ := rec.GetField(fields.Brec1)
 		brec, ok := val.(fields.BasicRecord1)
 		if !ok {
 			panic("Error: Not a BasicRecord1")

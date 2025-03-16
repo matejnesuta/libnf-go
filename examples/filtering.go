@@ -36,7 +36,7 @@ func Filtering() {
 		if match, _ := filter.Match(rec); !match {
 			continue
 		}
-		val, _ := rec.GetField(fields.FldBrec1)
+		val, _ := rec.GetField(fields.Brec1)
 		brec, ok := val.(fields.BasicRecord1)
 		if !ok {
 			panic("Error: Not a BasicRecord1")

@@ -1,6 +1,6 @@
 package examples
 
-// nfdump -r api/testfiles/profiling.tmp -n 10  -O bps
+//this example file should currently match the one of the original libnf: https://github.com/netx-as/libnf/blob/master/examples/lnf_ex03_aggreg.c
 
 import (
 	"fmt"
@@ -31,43 +31,62 @@ func Sorting() {
 	}
 	defer heap.Free()
 
-	heap.Clear()
-	heap.EnableNfdumpCompat()
-	heap.SetAggrOptions(fields.CalcBps, memheap.AggrMax, memheap.SortDesc, 0, 0)
+	// heap.Clear()
+	// heap.EnableNfdumpCompat()
+	// heap.SetHashBuckets(2000000000)
+	// heap.SetListMode()
+	err = heap.SetAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortDesc, 24, 64)
+	if err != nil {
+		panic("uhhhh")
+	}
+	heap.SetAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.DstAS, memheap.AggrKey, memheap.SortNone, 0, 0)
+
 	heap.SetAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.Last, memheap.AggrMax, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.SrcAddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
-	heap.SetAggrOptions(fields.DstAddr, memheap.AggrAuto, memheap.SortNone, 32, 128)
-	heap.SetAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.DstPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Prot, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.DstPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.TcpFlags, memheap.AggrOr, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
+	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
 
+	var i uint64 = 0
 	for {
 		err = ptr.GetNextRecord(&rec)
 		if err != nil {
 			break
 		}
-		heap.WriteRecord(&rec)
-	}
-
-	printHeader()
-
-	for i := 0; i < 10; i++ {
-		err = heap.GetNextRecord(&rec)
+		err = heap.WriteRecord(&rec)
 		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+		i++
+	}
+	fmt.Println("Total records in file: ", i)
+	// printHeader()
+	cursor, _ := heap.FirstRecordPosition()
+	i = 0
+	for {
+		// err = heap.GetNextRecord(&rec)
+		err = heap.GetRecordWithCursor(&cursor, &rec)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("Error getting record")
 			break
 		}
-		val, _ := rec.GetField(fields.Brec1)
-		brec, ok := val.(fields.BasicRecord1)
-		if !ok {
-			panic("Error: Not a BasicRecord1")
+		// val, _ := rec.GetField(fields.Brec1)
+		// brec, ok := val.(fields.BasicRecord1)
+		// if !ok {
+		// 	panic("Error: Not a BasicRecord1")
+		// }
+		i++
+		// printBrec(&brec)
+		err = heap.NextRecordPosition(&cursor)
+		if err != nil {
+			fmt.Println(err)
+			break
 		}
 
-		printBrec(&brec)
 	}
+	fmt.Println("Total records in heap: ", i)
 }

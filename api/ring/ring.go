@@ -1,8 +1,8 @@
 package ring
 
 import (
-	LnfErr "libnf/api/errors"
-	LnfRec "libnf/api/record"
+	"libnf/api/errors"
+	"libnf/api/record"
 	"libnf/internal"
 	"unsafe"
 )
@@ -32,9 +32,9 @@ func NewRing(filename string, forceInit bool, forceRelease bool, nonBlockingRead
 
 	status := internal.Ring_init(&ring.ptr, filename, flags)
 	if status == internal.ERR_NOMEM {
-		return ring, LnfErr.ErrNoMem
+		return ring, errors.ErrNoMem
 	} else if status == internal.ERR_OTHER {
-		return ring, LnfErr.ErrOther
+		return ring, errors.ErrOther
 	}
 	return ring, nil
 }
@@ -43,35 +43,35 @@ func (r *Ring) Info(infoType int) (int, error) {
 	var info uint64
 	status := internal.Ring_info(r.ptr, infoType, uintptr(unsafe.Pointer(&info)), int64(8))
 	if status == internal.ERR_OTHER {
-		return 0, LnfErr.ErrOther
+		return 0, errors.ErrOther
 	}
 	return status, nil
 }
 
-func (r *Ring) GetNextRecord(rec *LnfRec.Record) error {
+func (r *Ring) GetNextRecord(rec *record.Record) error {
 	if !rec.Allocated() {
-		return LnfErr.ErrRecordNotAllocated
+		return errors.ErrRecordNotAllocated
 	}
 
 	status := internal.Ring_read(r.ptr, rec.GetPtr())
 	if status == internal.EOF {
-		return LnfErr.ErrFileEof
+		return errors.ErrFileEof
 	} else if status == internal.ERR_OTHER {
-		return LnfErr.ErrOther
+		return errors.ErrOther
 	}
 	return nil
 }
 
-func (r *Ring) WriteRecord(rec *LnfRec.Record) error {
+func (r *Ring) WriteRecord(rec *record.Record) error {
 	if !rec.Allocated() {
-		return LnfErr.ErrRecordNotAllocated
+		return errors.ErrRecordNotAllocated
 	}
 
 	status := internal.Ring_write(r.ptr, rec.GetPtr())
 	if status == internal.ERR_NOMEM {
-		return LnfErr.ErrNoMem
+		return errors.ErrNoMem
 	} else if status == internal.ERR_OTHER {
-		return LnfErr.ErrOther
+		return errors.ErrOther
 	}
 	return nil
 }

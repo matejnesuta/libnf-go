@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+
+	_ "github.com/ianlancetaylor/cgosymbolizer"
 )
 
 func helpAndExit() {

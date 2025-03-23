@@ -49,6 +49,7 @@ var (
 var (
 	ErrMemHeapNotAllocated = errors.New("memory heap is not allocated")
 	ErrMemHeapEnd          = errors.New("end of memory heap")
+	ErrMemHeapEmpty        = errors.New("memory heap is empty")
 )
 
 // Other errors

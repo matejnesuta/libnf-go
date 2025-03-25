@@ -1,6 +1,7 @@
 package memheapv2_test
 
 import (
+	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	memheap "libnf/api/memheapv2"
@@ -192,6 +193,121 @@ func SortByUint32(t *testing.T, as []uint32, ports []uint16, order int) {
 	}
 }
 
+func sortByUint64(t *testing.T, bytes []uint64, ports []uint16, order int) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	err := heap.SortAggrOptions(fields.Doctets, memheap.AggrAuto, order, 0, 0)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+
+	rec, _ := record.NewRecord()
+	defer rec.Free()
+
+	brecs := [3]fields.BasicRecord1{{
+		First:   time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
+		Last:    time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
+		Bytes:   uint64(20),
+		Pkts:    uint64(1),
+		Flows:   uint64(1),
+		SrcPort: uint16(111),
+		DstPort: uint16(53),
+		SrcAddr: net.ParseIP("1.1.1.1").To4(),
+		DstAddr: net.ParseIP("1.1.1.2").To4(),
+		Prot:    uint8(6),
+	}, {
+		First:   time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
+		Last:    time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
+		Bytes:   uint64(70),
+		Pkts:    uint64(3),
+		Flows:   uint64(1),
+		SrcPort: uint16(80),
+		DstPort: uint16(1222),
+		SrcAddr: net.ParseIP("1.1.1.3").To4(),
+		DstAddr: net.ParseIP("1.1.1.4").To4(),
+		Prot:    uint8(5),
+	}, {
+		First:   time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
+		Last:    time.Date(2017, time.May, 28, 15, 55, 0, 0, time.UTC),
+		Bytes:   uint64(80),
+		Pkts:    uint64(3),
+		Flows:   uint64(1),
+		SrcPort: uint16(90),
+		DstPort: uint16(1222),
+		SrcAddr: net.ParseIP("1.1.1.5").To4(),
+		DstAddr: net.ParseIP("1.1.1.6").To4(),
+		Prot:    uint8(4),
+	}}
+
+	for _, brec := range brecs {
+		record.SetField(&rec, fields.Brec1, brec)
+		err := heap.WriteRecord(&rec)
+		assert.Equal(t, nil, err)
+	}
+
+	i := 0
+	cursor, err := heap.FirstRecordPosition()
+	assert.Nil(t, err)
+	for i < 3 {
+		err := heap.GetRecord(&cursor, &rec)
+		assert.Nil(t, err)
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.Brec1)
+		brec := val.(fields.BasicRecord1)
+		fmt.Println(brec.Bytes, brec.SrcPort)
+		assert.Equal(t, ports[i], brec.SrcPort)
+		assert.Equal(t, bytes[i], brec.Bytes)
+		i++
+	}
+}
+
+func SortByTime(t *testing.T, times []time.Time, ports []uint16, order int) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	err := heap.SortAggrOptions(fields.First, memheap.AggrAuto, order, 0, 0)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+
+	rec, _ := record.NewRecord()
+	defer rec.Free()
+
+	record.SetField(&rec, fields.First, time.Date(2017, time.May, 28, 15, 55, 0, 0, time.Local))
+	record.SetField(&rec, fields.SrcPort, uint16(111))
+	err = heap.WriteRecord(&rec)
+	assert.Nil(t, err)
+
+	record.SetField(&rec, fields.First, time.Date(2018, time.May, 28, 15, 55, 0, 0, time.Local))
+	record.SetField(&rec, fields.SrcPort, uint16(80))
+	err = heap.WriteRecord(&rec)
+	assert.Nil(t, err)
+
+	record.SetField(&rec, fields.First, time.Date(2015, time.May, 28, 15, 55, 0, 0, time.Local))
+	record.SetField(&rec, fields.SrcPort, uint16(90))
+	err = heap.WriteRecord(&rec)
+	assert.Nil(t, err)
+
+	i := 0
+	cursor, err := heap.FirstRecordPosition()
+	assert.Nil(t, err)
+	for i < 3 {
+		err := heap.GetRecord(&cursor, &rec)
+		assert.Nil(t, err)
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.First)
+		assert.Equal(t, times[i], val)
+		val, _ = rec.GetField(fields.SrcPort)
+		assert.Equal(t, ports[i], val)
+		i++
+	}
+}
+
 func TestSortByUint8Asc(t *testing.T) {
 	ports := [3]uint16{90, 80, 111}
 	protocols := [3]uint8{4, 5, 6}
@@ -226,6 +342,28 @@ func TestSortByUint32Desc(t *testing.T) {
 	as := [3]uint32{3, 2, 1}
 	ports := [3]uint16{443, 80, 53}
 	SortByUint32(t, as[:], ports[:], memheap.SortDesc)
+}
+
+func TestSortByUint64Asc(t *testing.T) {
+	bytes := [3]uint64{20, 70, 80}
+	ports := [3]uint16{111, 80, 90}
+	sortByUint64(t, bytes[:], ports[:], memheap.SortAsc)
+}
+
+func TestSortByUint64Desc(t *testing.T) {
+	bytes := [3]uint64{80, 70, 20}
+	ports := [3]uint16{90, 80, 111}
+	sortByUint64(t, bytes[:], ports[:], memheap.SortDesc)
+}
+
+func TestSortByTimeAsc(t *testing.T) {
+	times := [3]time.Time{
+		time.Date(2015, time.May, 28, 15, 55, 0, 0, time.Local),
+		time.Date(2017, time.May, 28, 15, 55, 0, 0, time.Local),
+		time.Date(2018, time.May, 28, 15, 55, 0, 0, time.Local),
+	}
+	ports := [3]uint16{90, 111, 80}
+	SortByTime(t, times[:], ports[:], memheap.SortAsc)
 }
 
 func TestAggrPerPairField(t *testing.T) {

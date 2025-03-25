@@ -152,6 +152,46 @@ func sortByUint16(t *testing.T, bytes []uint64, ports []uint16, order int) {
 	}
 }
 
+func SortByUint32(t *testing.T, as []uint32, ports []uint16, order int) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	err := heap.SortAggrOptions(fields.EgressAclId, memheap.AggrAuto, order, 0, 0)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+
+	rec, _ := record.NewRecord()
+	defer rec.Free()
+	var inputAs = [3]uint32{2, 3, 1}
+	var inputSrcPort = [3]uint16{80, 443, 53}
+	for i := 0; i < 3; i++ {
+
+		err = record.SetField(&rec, fields.EgressAclId, inputAs[i])
+		assert.Nil(t, err)
+		err = record.SetField(&rec, fields.SrcPort, inputSrcPort[i])
+		assert.Nil(t, err)
+		err := heap.WriteRecord(&rec)
+		assert.Equal(t, nil, err)
+	}
+
+	i := 0
+	cursor, err := heap.FirstRecordPosition()
+	assert.Nil(t, err)
+	for i < 3 {
+		err := heap.GetRecord(&cursor, &rec)
+		assert.Nil(t, err)
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.EgressAclId)
+		assert.Equal(t, as[i], val)
+		val, _ = rec.GetField(fields.SrcPort)
+		assert.Equal(t, ports[i], val)
+		i++
+	}
+}
+
 func TestSortByUint8Asc(t *testing.T) {
 	ports := [3]uint16{90, 80, 111}
 	protocols := [3]uint8{4, 5, 6}
@@ -174,6 +214,18 @@ func TestSortByUint16Desc(t *testing.T) {
 	bytes := [3]uint64{20, 80, 80}
 	ports := [3]uint16{111, 90, 80}
 	sortByUint16(t, bytes[:], ports[:], memheap.SortDesc)
+}
+
+func TestSortByUint32Asc(t *testing.T) {
+	as := [3]uint32{1, 2, 3}
+	ports := [3]uint16{53, 80, 443}
+	SortByUint32(t, as[:], ports[:], memheap.SortAsc)
+}
+
+func TestSortByUint32Desc(t *testing.T) {
+	as := [3]uint32{3, 2, 1}
+	ports := [3]uint16{443, 80, 53}
+	SortByUint32(t, as[:], ports[:], memheap.SortDesc)
 }
 
 func TestAggrPerPairField(t *testing.T) {

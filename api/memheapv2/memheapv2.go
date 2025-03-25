@@ -34,7 +34,6 @@ type MemHeapV2 struct {
 	sortByKey         bool
 	sortType          int
 	nfdumpComp        bool
-	cursor            uint64
 	sortedKeys        []string
 }
 
@@ -198,8 +197,12 @@ func getValues(record *record.Record, valueTemplateList []fieldOptions, pairset 
 
 func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecord, values []fieldOptions) {
 	// update record
+	fmt.Println("Key: ", key)
+	fmt.Println("Input: ", rec)
 	if oldRec, ok := table[key]; ok {
 		var tmpVal any
+		fmt.Println("Updating record")
+		fmt.Println("Old record: ", oldRec)
 		for i, val := range rec.values {
 			switch values[i].aggrType {
 			case AggrMin:
@@ -213,8 +216,6 @@ func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecor
 			}
 			rec.values[i] = tmpVal
 		}
-		fmt.Println("Updating record")
-		fmt.Println("Old record: ", oldRec)
 		fmt.Println("New record: ", rec)
 		table[key] = rec
 		// insert new record
@@ -223,6 +224,7 @@ func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecor
 		fmt.Println("New record: ", rec)
 		table[key] = rec
 	}
+	fmt.Println("--------------------------------")
 
 }
 
@@ -347,4 +349,17 @@ func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 	}
 
 	return nil
+}
+
+func (m *MemHeapV2) Clear() {
+	m.table = make(map[string]aggrRecord)
+	m.sortedKeys = nil
+	m.keyTemplateList = nil
+	m.valueTemplateList = nil
+	m.sortOffset = 0
+	m.sortField = 0
+	m.sortByKey = false
+	m.sortType = 0
+	m.statsMode = false
+	m.nfdumpComp = false
 }

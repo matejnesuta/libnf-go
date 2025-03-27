@@ -164,6 +164,7 @@ func buildKey(record *record.Record, keyTemplateList []fieldOptions, pairset int
 		case float64:
 			key += strconv.FormatFloat(v, 'f', -1, 64)
 		case net.IP:
+			fmt.Println("IP: ", v)
 			if v.To4() != nil {
 				ipv4Mask := net.CIDRMask(int(x.numbits), 32)
 				key += v.Mask(ipv4Mask).String()

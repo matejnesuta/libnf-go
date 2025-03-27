@@ -27,9 +27,18 @@ func lessThan(a, b interface{}) bool {
 	case string:
 		v2, ok := b.(string)
 		return ok && v1 < v2
+	// this sorting is done based on how libnf sorts IP addresses, but that might not be correct
 	case net.IP:
 		v2, ok := b.(net.IP)
-		return ok && bytes.Compare(v1, v2) < 0
+		if !ok {
+			return false
+		}
+		if len(v1) > len(v2) {
+			return true
+		} else if len(v1) < len(v2) {
+			return false
+		}
+		return bytes.Compare(v1, v2) > 0
 	case time.Time:
 		v2, ok := b.(time.Time)
 		return ok && v1.Before(v2)
@@ -61,9 +70,15 @@ func greaterThan(a, b interface{}) bool {
 	case string:
 		v2, ok := b.(string)
 		return ok && v1 > v2
+	// this sorting is done based on how libnf sorts IP addresses, but that might not be correct
 	case net.IP:
 		v2, ok := b.(net.IP)
-		return ok && bytes.Compare(v1, v2) > 0
+		if len(v1) < len(v2) {
+			return true
+		} else if len(v1) > len(v2) {
+			return false
+		}
+		return ok && bytes.Compare(v1, v2) < 0
 	case time.Time:
 		v2, ok := b.(time.Time)
 		return ok && v1.After(v2)

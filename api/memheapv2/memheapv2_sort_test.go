@@ -308,6 +308,51 @@ func SortByTime(t *testing.T, times []time.Time, ports []uint16, order int) {
 	}
 }
 
+func SortByIP(t *testing.T, srcAddrs []net.IP, ports []uint16, order int) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	err := heap.SortAggrOptions(fields.SrcAddr, memheap.AggrKey, order, 32, 128)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+
+	rec, _ := record.NewRecord()
+	defer rec.Free()
+
+	inputIps := [4]net.IP{net.ParseIP("192.168.1.1").To4(),
+		net.ParseIP("192.168.1.2").To4(),
+		net.ParseIP("2001:399a:eddf:f709:ff00:ff00:2ce5:7918"),
+		net.ParseIP("2001:399a:eddf:f709:ff00:ff00:2ce5:7917")}
+	inputPorts := [4]uint16{80, 443, 53, 53}
+
+	for i := 0; i < 4; i++ {
+		fmt.Println(inputIps[i], inputPorts[i])
+		record.SetField(&rec, fields.SrcAddr, inputIps[i])
+		record.SetField(&rec, fields.SrcPort, inputPorts[i])
+		err := heap.WriteRecord(&rec)
+		assert.Equal(t, nil, err)
+	}
+
+	i := 0
+	cursor, err := heap.FirstRecordPosition()
+	assert.Nil(t, err)
+	for i < 4 {
+		err := heap.GetRecord(&cursor, &rec)
+		assert.Nil(t, err)
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.SrcAddr)
+		assert.Equal(t, srcAddrs[i], val)
+		fmt.Print(val, " ")
+		val, _ = rec.GetField(fields.SrcPort)
+		fmt.Println(val)
+		assert.Equal(t, ports[i], val)
+		i++
+	}
+}
+
 func TestSortByUint8Asc(t *testing.T) {
 	ports := [3]uint16{90, 80, 111}
 	protocols := [3]uint8{4, 5, 6}
@@ -364,6 +409,39 @@ func TestSortByTimeAsc(t *testing.T) {
 	}
 	ports := [3]uint16{90, 111, 80}
 	SortByTime(t, times[:], ports[:], memheap.SortAsc)
+}
+
+func TestSortByTimeDesc(t *testing.T) {
+	times := [3]time.Time{
+		time.Date(2018, time.May, 28, 15, 55, 0, 0, time.Local),
+		time.Date(2017, time.May, 28, 15, 55, 0, 0, time.Local),
+		time.Date(2015, time.May, 28, 15, 55, 0, 0, time.Local),
+	}
+	ports := [3]uint16{80, 111, 90}
+	SortByTime(t, times[:], ports[:], memheap.SortDesc)
+}
+
+// these 2 tests might seem wrong, but this is how libnf sorts IP addresses at the moment
+func TestSortByIPAsc(t *testing.T) {
+	ips := [4]net.IP{
+		net.ParseIP("2001:399a:eddf:f709:ff00:ff00:2ce5:7918"),
+		net.ParseIP("2001:399a:eddf:f709:ff00:ff00:2ce5:7917"),
+		net.ParseIP("192.168.1.2").To4(),
+		net.ParseIP("192.168.1.1").To4()}
+
+	ports := [4]uint16{53, 53, 443, 80}
+	SortByIP(t, ips[:], ports[:], memheap.SortAsc)
+}
+
+func TestSortByIPDesc(t *testing.T) {
+	ips := [4]net.IP{
+		net.ParseIP("192.168.1.1").To4(),
+		net.ParseIP("192.168.1.2").To4(),
+		net.ParseIP("2001:399a:eddf:f709:ff00:ff00:2ce5:7917"),
+		net.ParseIP("2001:399a:eddf:f709:ff00:ff00:2ce5:7918")}
+
+	ports := [4]uint16{80, 443, 53, 53}
+	SortByIP(t, ips[:], ports[:], memheap.SortDesc)
 }
 
 func TestAggrPerPairField(t *testing.T) {

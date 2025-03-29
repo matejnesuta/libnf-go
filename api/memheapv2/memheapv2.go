@@ -150,6 +150,16 @@ func buildKey(record *record.Record, keyTemplateList []fieldOptions, pairset int
 		if err != nil {
 			return "", nil, err
 		}
+
+		ip, ok := val.(net.IP)
+		if ok {
+			if ip.To4() != nil {
+				val = ip.Mask(net.CIDRMask(int(x.numbits), 32))
+			} else {
+				val = ip.Mask(net.CIDRMask(int(x.numbits6), 128))
+			}
+		}
+
 		keyVals = append(keyVals, val)
 
 		switch v := val.(type) {
@@ -164,14 +174,7 @@ func buildKey(record *record.Record, keyTemplateList []fieldOptions, pairset int
 		case float64:
 			key += strconv.FormatFloat(v, 'f', -1, 64)
 		case net.IP:
-			fmt.Println("IP: ", v)
-			if v.To4() != nil {
-				ipv4Mask := net.CIDRMask(int(x.numbits), 32)
-				key += v.Mask(ipv4Mask).String()
-			} else {
-				ipv6Mask := net.CIDRMask(int(x.numbits6), 128)
-				key += v.Mask(ipv6Mask).String()
-			}
+			key += v.String()
 		case time.Time:
 			key += v.String()
 		case net.HardwareAddr:
@@ -198,35 +201,34 @@ func getValues(record *record.Record, valueTemplateList []fieldOptions, pairset 
 
 func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecord, values []fieldOptions) {
 	// update record
-	// fmt.Println("Values: ", values)
-	// fmt.Println("Key: ", key)
+	fmt.Println("Values: ", rec.values)
+	fmt.Println("Key: ", key)
 	// fmt.Println("Input: ", rec)
 	if oldRec, ok := table[key]; ok {
-		var tmpVal any
-		// fmt.Println("Updating record")
-		// fmt.Println("Old record: ", oldRec)
+		newValues := make([]any, len(oldRec.values))
+		copy(newValues, oldRec.values)
+
 		for i, val := range rec.values {
 			switch values[i].aggrType {
 			case AggrMin:
-				tmpVal = getMin(val, oldRec.values[i])
+				newValues[i] = getMin(val, oldRec.values[i])
 			case AggrMax:
-				tmpVal = getMax(val, oldRec.values[i])
+				newValues[i] = getMax(val, oldRec.values[i])
 			case AggrSum:
-				tmpVal = getSum(val, oldRec.values[i])
+				newValues[i] = getSum(val, oldRec.values[i])
 			case AggrOr:
-				tmpVal = getOr(val, oldRec.values[i])
+				newValues[i] = getOr(val, oldRec.values[i])
 			}
-			rec.values[i] = tmpVal
 		}
-		// fmt.Println("New record: ", rec)
+
+		rec.values = newValues // Ensure `rec.values` is a fresh copy
 		table[key] = rec
-		// insert new record
 	} else {
-		// fmt.Println("Inserting record")
-		// fmt.Println("New record: ", rec)
+		fmt.Println("Inserting record")
+		fmt.Println("New record: ", rec)
 		table[key] = rec
 	}
-	// fmt.Println("--------------------------------")
+	fmt.Println("--------------------------------")
 
 }
 

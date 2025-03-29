@@ -1,6 +1,9 @@
 package ring_test
 
 import (
+	"libnf/api/errors"
+	"libnf/api/fields"
+	"libnf/api/record"
 	"libnf/api/ring"
 	"os"
 	"testing"
@@ -22,4 +25,51 @@ func TestCreateSharedFile(t *testing.T) {
 
 	_, err = os.Stat(path)
 	assert.Equal(t, true, os.IsNotExist(err))
+}
+
+func TestGetNextRecordOnUnallocatedRecord(t *testing.T) {
+	ring, err := ring.NewRing("libnf-go", true, false, false)
+	rec := record.Record{}
+	assert.Nil(t, err)
+
+	err = ring.GetNextRecord(&rec)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
+
+	err = ring.Free()
+	assert.Nil(t, err)
+}
+
+func TestWriteOnUnallocatedRecord(t *testing.T) {
+	ring, err := ring.NewRing("libnf-go", true, false, false)
+	rec := record.Record{}
+	assert.Nil(t, err)
+
+	err = ring.WriteRecord(&rec)
+	assert.Equal(t, errors.ErrRecordNotAllocated, err)
+
+	err = ring.Free()
+	assert.Nil(t, err)
+}
+
+func TestHappyPath(t *testing.T) {
+	r, err := ring.NewRing("libnf-go", true, false, false)
+	assert.Nil(t, err)
+	rec, err := record.NewRecord()
+	assert.Nil(t, err)
+
+	for i := 0; i < 10; i++ {
+		record.SetField(&rec, fields.Dpkts, uint64(i))
+		err = r.WriteRecord(&rec)
+		assert.Nil(t, err)
+	}
+
+	_, err = r.Info(ring.RingTotal)
+	assert.Nil(t, err)
+
+	for i := 0; i < 10; i++ {
+		err = r.GetNextRecord(&rec)
+		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.Dpkts)
+		assert.Equal(t, uint64(i), val)
+	}
 }

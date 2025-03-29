@@ -2,7 +2,6 @@ package memheapv2
 
 import (
 	"bytes"
-	"fmt"
 	"libnf/api/fields"
 	"net"
 	"sort"
@@ -112,11 +111,28 @@ func calculateSortValue(m *MemHeapV2, key string) {
 	}
 
 	if m.sortField == fields.CalcDuration {
-		fmt.Println(arr)
 		first := arr[m.sortOffset+1].(time.Time)
 		last := arr[m.sortOffset+2].(time.Time)
 		arr[m.sortOffset] = last.Sub(first).Milliseconds()
-	} // TODO add more cases
+	} else if m.sortField == fields.CalcBps || m.sortField == fields.CalcPps {
+		item := arr[m.sortOffset+1].(uint64)
+		first := arr[m.sortOffset+3].(time.Time)
+		last := arr[m.sortOffset+4].(time.Time)
+		duration := last.Sub(first).Seconds()
+		if duration == 0 {
+			arr[m.sortOffset] = float64(0)
+		} else if m.sortField == fields.CalcBps {
+			arr[m.sortOffset] = float64(item) * 8 / duration
+		} else {
+			arr[m.sortOffset] = float64(item) / duration
+		}
+	} else {
+		first := arr[m.sortOffset+1].(uint64)
+		last := arr[m.sortOffset+2].(uint64)
+		arr[m.sortOffset] = float64(last) / float64(first)
+	}
+
+	// TODO add more cases
 }
 
 func sortRecords(m *MemHeapV2) {
@@ -126,13 +142,9 @@ func sortRecords(m *MemHeapV2) {
 
 	for key := range m.table {
 		if ok {
-			fmt.Println("Calculating sort value")
 			calculateSortValue(m, key)
 		}
 		m.sortedKeys = append(m.sortedKeys, key)
-		fmt.Println(m.table[key].values[m.sortOffset])
-		fmt.Println(m.table[key].values[m.sortOffset+1])
-		fmt.Println(m.table[key].values[m.sortOffset+2])
 	}
 
 	if m.sortType != SortNone {

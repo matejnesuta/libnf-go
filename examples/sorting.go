@@ -47,7 +47,7 @@ func Sorting() {
 	heap.SetAggrOptions(fields.TcpFlags, memheap.AggrOr, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortNone, 0, 0)
 	heap.SetAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
+	// heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
 
 	var i uint64 = 0
 	for {
@@ -61,12 +61,18 @@ func Sorting() {
 			panic(err)
 		}
 		i++
+		if i == 1000000 {
+			break
+		}
 	}
 	fmt.Println("Total records in file: ", i)
 	// printHeader()
 	cursor, _ := heap.FirstRecordPosition()
 	i = 0
 	for {
+		if i == 400000 {
+			fmt.Println("break")
+		}
 		// err = heap.GetNextRecord(&rec)
 		err = heap.GetRecordWithCursor(&cursor, &rec)
 		if err != nil {
@@ -74,13 +80,16 @@ func Sorting() {
 			fmt.Println("Error getting record")
 			break
 		}
-		// val, _ := rec.GetField(fields.Brec1)
-		// brec, ok := val.(fields.BasicRecord1)
-		// if !ok {
-		// 	panic("Error: Not a BasicRecord1")
-		// }
+		val, err := rec.GetField(fields.Brec1)
+		if err != nil {
+			panic(err)
+		}
+		brec, ok := val.(fields.BasicRecord1)
+		if !ok {
+			panic("Error: Not a BasicRecord1")
+		}
 		i++
-		// printBrec(&brec)
+		fmt.Println(brec.SrcAddr, brec.SrcPort, brec.DstAddr, brec.DstPort, brec.First.UnixMilli(), brec.Bytes, brec.Pkts)
 		err = heap.NextRecordPosition(&cursor)
 		if err != nil {
 			fmt.Println(err)

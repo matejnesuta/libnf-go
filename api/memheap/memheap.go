@@ -242,7 +242,7 @@ func (m *MemHeap) SetAggrOptions(field int, aggrType int, sortType int, numBits 
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
 	}
-	status := internal.Mem_fadd(m.ptr, field, aggrType+sortType, numBits, numBits6)
+	status := internal.Mem_fadd(m.ptr, field, aggrType|sortType, numBits, numBits6)
 	if status == internal.ERR_OTHER {
 		return errors.ErrOther
 	} else if status == internal.ERR_NOMEM {

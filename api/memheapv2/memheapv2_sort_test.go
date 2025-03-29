@@ -347,7 +347,93 @@ func SortByIP(t *testing.T, srcAddrs []net.IP, ports []uint16, order int) {
 		assert.Equal(t, srcAddrs[i], val)
 		fmt.Print(val, " ")
 		val, _ = rec.GetField(fields.SrcPort)
+		assert.Equal(t, ports[i], val)
+		i++
+	}
+}
+
+func SortByMac(t *testing.T, srcMacs []net.HardwareAddr, ports []uint16, order int) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	err := heap.SortAggrOptions(fields.InSrcMac, memheap.AggrKey, order, 48, 128)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+
+	rec, _ := record.NewRecord()
+	defer rec.Free()
+
+	inputMacs := [3]net.HardwareAddr{net.HardwareAddr{0x00, 0x02, 0x00, 0x00, 0x00, 0x00},
+		net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
+		net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x02}}
+	inputPorts := [3]uint16{80, 443, 53}
+
+	for i := 0; i < 3; i++ {
+		record.SetField(&rec, fields.InSrcMac, inputMacs[i])
+		record.SetField(&rec, fields.SrcPort, inputPorts[i])
+		err := heap.WriteRecord(&rec)
+		assert.Equal(t, nil, err)
+	}
+
+	i := 0
+	cursor, err := heap.FirstRecordPosition()
+	assert.Nil(t, err)
+	for i < 3 {
+		err := heap.GetRecord(&cursor, &rec)
+		assert.Nil(t, err)
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.InSrcMac)
+		assert.Equal(t, srcMacs[i], val)
+		fmt.Print(val, " ")
+		val, _ = rec.GetField(fields.SrcPort)
 		fmt.Println(val)
+		assert.Equal(t, ports[i], val)
+		i++
+	}
+}
+
+func SortByDuration(t *testing.T, durations []uint64, ports []uint16, order int) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	err := heap.SortAggrOptions(fields.CalcDuration, memheap.AggrAuto, order, 0, 0)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+
+	rec, _ := record.NewRecord()
+	defer rec.Free()
+
+	inputDurations := [3]uint64{70, 20, 80}
+	inputPorts := [3]uint16{80, 443, 53}
+
+	for i := 0; i < 3; i++ {
+		record.SetField(&rec, fields.First, time.Date(2017, time.May, 28, 15, 55, 0, 0, time.Local))
+		record.SetField(&rec, fields.Last, time.Date(2017, time.May, 28, 15, 55, 0, int(inputDurations[i]*1000000), time.Local))
+		record.SetField(&rec, fields.SrcPort, inputPorts[i])
+		err := heap.WriteRecord(&rec)
+		assert.Equal(t, nil, err)
+	}
+
+	i := 0
+	cursor, err := heap.FirstRecordPosition()
+	assert.Nil(t, err)
+	for i < 3 {
+		err := heap.GetRecord(&cursor, &rec)
+		assert.Nil(t, err)
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.CalcDuration)
+		fmt.Println("prdel")
+		fmt.Print(val, " ")
+		assert.Equal(t, durations[i], val)
+		val, _ = rec.GetField(fields.SrcPort)
+		fmt.Println(val)
+
 		assert.Equal(t, ports[i], val)
 		i++
 	}
@@ -442,6 +528,36 @@ func TestSortByIPDesc(t *testing.T) {
 
 	ports := [4]uint16{80, 443, 53, 53}
 	SortByIP(t, ips[:], ports[:], memheap.SortDesc)
+}
+
+func TestSortByMacAsc(t *testing.T) {
+	macs := [3]net.HardwareAddr{
+		net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
+		net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x02},
+		net.HardwareAddr{0x00, 0x02, 0x00, 0x00, 0x00, 0x00}}
+	ports := [3]uint16{443, 53, 80}
+	SortByMac(t, macs[:], ports[:], memheap.SortAsc)
+}
+
+func TestSortByMacDesc(t *testing.T) {
+	macs := [3]net.HardwareAddr{
+		net.HardwareAddr{0x00, 0x02, 0x00, 0x00, 0x00, 0x00},
+		net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x02},
+		net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x01}}
+	ports := [3]uint16{80, 53, 443}
+	SortByMac(t, macs[:], ports[:], memheap.SortDesc)
+}
+
+func TestSortByDurationAsc(t *testing.T) {
+	durations := [3]uint64{20, 70, 80}
+	ports := [3]uint16{443, 80, 53}
+	SortByDuration(t, durations[:], ports[:], memheap.SortAsc)
+}
+
+func TestSortByDurationDesc(t *testing.T) {
+	durations := [3]uint64{80, 70, 20}
+	ports := [3]uint16{53, 80, 443}
+	SortByDuration(t, durations[:], ports[:], memheap.SortDesc)
 }
 
 func TestAggrPerPairField(t *testing.T) {

@@ -198,12 +198,13 @@ func getValues(record *record.Record, valueTemplateList []fieldOptions, pairset 
 
 func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecord, values []fieldOptions) {
 	// update record
-	fmt.Println("Key: ", key)
-	fmt.Println("Input: ", rec)
+	// fmt.Println("Values: ", values)
+	// fmt.Println("Key: ", key)
+	// fmt.Println("Input: ", rec)
 	if oldRec, ok := table[key]; ok {
 		var tmpVal any
-		fmt.Println("Updating record")
-		fmt.Println("Old record: ", oldRec)
+		// fmt.Println("Updating record")
+		// fmt.Println("Old record: ", oldRec)
 		for i, val := range rec.values {
 			switch values[i].aggrType {
 			case AggrMin:
@@ -217,15 +218,15 @@ func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecor
 			}
 			rec.values[i] = tmpVal
 		}
-		fmt.Println("New record: ", rec)
+		// fmt.Println("New record: ", rec)
 		table[key] = rec
 		// insert new record
 	} else {
-		fmt.Println("Inserting record")
-		fmt.Println("New record: ", rec)
+		// fmt.Println("Inserting record")
+		// fmt.Println("New record: ", rec)
 		table[key] = rec
 	}
-	fmt.Println("--------------------------------")
+	// fmt.Println("--------------------------------")
 
 }
 
@@ -331,6 +332,11 @@ func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 	if len(m.table) == 0 {
 		return errors.ErrMemHeapEmpty
 	}
+
+	// fmt.Println(m.valueTemplateList)
+	// fmt.Println("sort offset: ", m.sortOffset)
+	// fmt.Println("sort field: ", m.sortField)
+	// fmt.Println("sort by key: ", m.sortByKey)
 
 	if m.sortedKeys == nil {
 		sortRecords(m)

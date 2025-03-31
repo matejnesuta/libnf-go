@@ -1,7 +1,6 @@
 package memheapv2
 
 import (
-	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	"libnf/api/record"
@@ -201,8 +200,8 @@ func getValues(record *record.Record, valueTemplateList []fieldOptions, pairset 
 
 func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecord, values []fieldOptions) {
 	// update record
-	fmt.Println("Values: ", rec.values)
-	fmt.Println("Key: ", key)
+	// fmt.Println("Values: ", rec.values)
+	// fmt.Println("Key: ", key)
 	// fmt.Println("Input: ", rec)
 	if oldRec, ok := table[key]; ok {
 		newValues := make([]any, len(oldRec.values))
@@ -224,11 +223,11 @@ func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecor
 		rec.values = newValues // Ensure `rec.values` is a fresh copy
 		table[key] = rec
 	} else {
-		fmt.Println("Inserting record")
-		fmt.Println("New record: ", rec)
+		// fmt.Println("Inserting record")
+		// fmt.Println("New record: ", rec)
 		table[key] = rec
 	}
-	fmt.Println("--------------------------------")
+	// fmt.Println("--------------------------------")
 
 }
 

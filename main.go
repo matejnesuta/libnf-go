@@ -75,6 +75,8 @@ func main() {
 		examples.Stats()
 	} else if os.Args[1] == "memheapv2" {
 		examples.MemHeapV2()
+	} else if os.Args[1] == "psorting" {
+		examples.Psorting()
 	} else {
 		fmt.Println("Invalid option.")
 		helpAndExit()

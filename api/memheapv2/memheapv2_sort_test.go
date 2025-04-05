@@ -70,16 +70,17 @@ func sortByUint8(t *testing.T, ports []uint16, protocols []uint8, order int) {
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
-		cursor, err = heap.NextRecordPosition(cursor)
-		if err == errors.ErrMemHeapEnd {
-			break
-		}
-		assert.Nil(t, err)
+
 		val, _ := rec.GetField(fields.Brec1)
 		brec := val.(fields.BasicRecord1)
 		assert.Equal(t, ports[i], brec.SrcPort)
 		assert.Equal(t, protocols[i], brec.Prot)
 		i++
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
 	}
 }
 
@@ -140,16 +141,17 @@ func sortByUint16(t *testing.T, bytes []uint64, ports []uint16, order int) {
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
-		cursor, err = heap.NextRecordPosition(cursor)
-		if err == errors.ErrMemHeapEnd {
-			break
-		}
-		assert.Nil(t, err)
+
 		val, _ := rec.GetField(fields.Brec1)
 		brec := val.(fields.BasicRecord1)
 		assert.Equal(t, ports[i], brec.SrcPort)
 		assert.Equal(t, bytes[i], brec.Bytes)
 		i++
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
 	}
 }
 
@@ -180,16 +182,17 @@ func sortByUint32(t *testing.T, as []uint32, ports []uint16, order int) {
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
-		cursor, err = heap.NextRecordPosition(cursor)
-		if err == errors.ErrMemHeapEnd {
-			break
-		}
-		assert.Nil(t, err)
+
 		val, _ := rec.GetField(fields.EgressAclId)
 		assert.Equal(t, as[i], val)
 		val, _ = rec.GetField(fields.SrcPort)
 		assert.Equal(t, ports[i], val)
 		i++
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
 	}
 }
 
@@ -250,17 +253,17 @@ func sortByUint64(t *testing.T, bytes []uint64, ports []uint16, order int) {
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
+
+		val, _ := rec.GetField(fields.Brec1)
+		brec := val.(fields.BasicRecord1)
+		assert.Equal(t, ports[i], brec.SrcPort)
+		assert.Equal(t, bytes[i], brec.Bytes)
+		i++
 		cursor, err = heap.NextRecordPosition(cursor)
 		if err == errors.ErrMemHeapEnd {
 			break
 		}
 		assert.Nil(t, err)
-		val, _ := rec.GetField(fields.Brec1)
-		brec := val.(fields.BasicRecord1)
-		fmt.Println(brec.Bytes, brec.SrcPort)
-		assert.Equal(t, ports[i], brec.SrcPort)
-		assert.Equal(t, bytes[i], brec.Bytes)
-		i++
 	}
 }
 
@@ -295,16 +298,17 @@ func sortByTime(t *testing.T, times []time.Time, ports []uint16, order int) {
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
-		cursor, err = heap.NextRecordPosition(cursor)
-		if err == errors.ErrMemHeapEnd {
-			break
-		}
-		assert.Nil(t, err)
+
 		val, _ := rec.GetField(fields.First)
 		assert.Equal(t, times[i], val)
 		val, _ = rec.GetField(fields.SrcPort)
 		assert.Equal(t, ports[i], val)
 		i++
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
 	}
 }
 
@@ -325,7 +329,6 @@ func sortByIP(t *testing.T, srcAddrs []net.IP, ports []uint16, order int) {
 	inputPorts := [4]uint16{80, 443, 53, 53}
 
 	for i := 0; i < 4; i++ {
-		fmt.Println(inputIps[i], inputPorts[i])
 		record.SetField(&rec, fields.SrcAddr, inputIps[i])
 		record.SetField(&rec, fields.SrcPort, inputPorts[i])
 		err := heap.WriteRecord(&rec)
@@ -338,17 +341,17 @@ func sortByIP(t *testing.T, srcAddrs []net.IP, ports []uint16, order int) {
 	for i < 4 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
+
+		val, _ := rec.GetField(fields.SrcAddr)
+		assert.Equal(t, srcAddrs[i], val)
+		val, _ = rec.GetField(fields.SrcPort)
+		assert.Equal(t, ports[i], val)
+		i++
 		cursor, err = heap.NextRecordPosition(cursor)
 		if err == errors.ErrMemHeapEnd {
 			break
 		}
 		assert.Nil(t, err)
-		val, _ := rec.GetField(fields.SrcAddr)
-		assert.Equal(t, srcAddrs[i], val)
-		fmt.Print(val, " ")
-		val, _ = rec.GetField(fields.SrcPort)
-		assert.Equal(t, ports[i], val)
-		i++
 	}
 }
 
@@ -380,18 +383,17 @@ func sortByMac(t *testing.T, srcMacs []net.HardwareAddr, ports []uint16, order i
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
+
+		val, _ := rec.GetField(fields.InSrcMac)
+		assert.Equal(t, srcMacs[i], val)
+		val, _ = rec.GetField(fields.SrcPort)
+		assert.Equal(t, ports[i], val)
+		i++
 		cursor, err = heap.NextRecordPosition(cursor)
 		if err == errors.ErrMemHeapEnd {
 			break
 		}
 		assert.Nil(t, err)
-		val, _ := rec.GetField(fields.InSrcMac)
-		assert.Equal(t, srcMacs[i], val)
-		fmt.Print(val, " ")
-		val, _ = rec.GetField(fields.SrcPort)
-		fmt.Println(val)
-		assert.Equal(t, ports[i], val)
-		i++
 	}
 }
 
@@ -422,16 +424,18 @@ func sortByDuration(t *testing.T, durations []uint64, ports []uint16, order int)
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
-		cursor, err = heap.NextRecordPosition(cursor)
-		if err == errors.ErrMemHeapEnd {
-			break
-		}
+
 		assert.Nil(t, err)
 		val, _ := rec.GetField(fields.CalcDuration)
 		assert.Equal(t, durations[i], val)
 		val, _ = rec.GetField(fields.SrcPort)
 		assert.Equal(t, ports[i], val)
 		i++
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
 	}
 }
 
@@ -463,18 +467,17 @@ func sortByBps(t *testing.T, bpss []float64, ports []uint16, order int, calcFiel
 	for i < 3 {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
+
+		val, _ := rec.GetField(calcField)
+		assert.Equal(t, bpss[i], val)
+		val, _ = rec.GetField(fields.SrcPort)
+		assert.Equal(t, ports[i], val)
+		i++
 		cursor, err = heap.NextRecordPosition(cursor)
 		if err == errors.ErrMemHeapEnd {
 			break
 		}
 		assert.Nil(t, err)
-		val, _ := rec.GetField(calcField)
-		fmt.Print(val, " ")
-		assert.Equal(t, bpss[i], val)
-		val, _ = rec.GetField(fields.SrcPort)
-		fmt.Println(val)
-		assert.Equal(t, ports[i], val)
-		i++
 	}
 }
 
@@ -488,10 +491,10 @@ func sortByBpp(t *testing.T, bpps []float64, ports []uint16, order int) {
 	rec, _ := record.NewRecord()
 	defer rec.Free()
 
-	inputBytes := [3]uint64{70, 20, 80}
-	inputPorts := [3]uint16{80, 443, 53}
+	inputBytes := [4]uint64{70, 20, 80, 2}
+	inputPorts := [4]uint16{80, 443, 53, 80}
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 4; i++ {
 		record.SetField(&rec, fields.Dpkts, uint64(2))
 		record.SetField(&rec, fields.SrcPort, inputPorts[i])
 		record.SetField(&rec, fields.Doctets, uint64(inputBytes[i]))
@@ -502,22 +505,22 @@ func sortByBpp(t *testing.T, bpps []float64, ports []uint16, order int) {
 	i := 0
 	cursor, err := heap.FirstRecordPosition()
 	assert.Nil(t, err)
-	for i < 3 {
+	for {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
+		val, _ := rec.GetField(fields.CalcBpp)
+		fmt.Print(val, " ")
+		val, _ = rec.GetField(fields.SrcPort)
+		fmt.Println(val)
+		assert.Equal(t, ports[i], val)
+		i++
 		cursor, err = heap.NextRecordPosition(cursor)
 		if err == errors.ErrMemHeapEnd {
 			break
 		}
 		assert.Nil(t, err)
-		val, _ := rec.GetField(fields.CalcBpp)
-		fmt.Print(val, " ")
-		assert.Equal(t, bpps[i], val)
-		val, _ = rec.GetField(fields.SrcPort)
-		fmt.Println(val)
-		assert.Equal(t, ports[i], val)
-		i++
 	}
+	assert.Equal(t, i, 3)
 }
 
 func TestSortByUint8Asc(t *testing.T) {
@@ -666,13 +669,13 @@ func TestSortByPpsDesc(t *testing.T) {
 }
 
 func TestSortByBppAsc(t *testing.T) {
-	bpss := [3]float64{10, 35, 40}
+	bpss := [3]float64{10, 36, 40}
 	ports := [3]uint16{443, 80, 53}
 	sortByBpp(t, bpss[:], ports[:], memheap.SortAsc)
 }
 
 func TestSortByBppDesc(t *testing.T) {
-	bpss := [3]float64{40, 35, 10}
+	bpss := [3]float64{40, 36, 10}
 	ports := [3]uint16{53, 80, 443}
 	sortByBpp(t, bpss[:], ports[:], memheap.SortDesc)
 }

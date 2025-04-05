@@ -254,3 +254,49 @@ func TestStatistics(t *testing.T) {
 
 	assert.Equal(t, 1982, records+1)
 }
+
+func TestSetCursorOnEmptyHeap(t *testing.T) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	cursor, err := heap.FirstRecordPosition()
+	assert.Equal(t, errors.ErrMemHeapEmpty, err)
+	rec, err := record.NewRecord()
+	defer rec.Free()
+	assert.Nil(t, err)
+	err = heap.GetRecord(&cursor, &rec)
+	assert.Equal(t, errors.ErrMemHeapEmpty, err)
+	cursor, err = heap.NextRecordPosition(cursor)
+	assert.Equal(t, errors.ErrMemHeapEmpty, err)
+}
+
+func TestClear(t *testing.T) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	err := heap.SortAggrOptions(fields.PairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortNone, 0, 0)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortDesc, 0, 0)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
+	assert.Equal(t, nil, err)
+
+	rec, err := record.NewRecord()
+	assert.Equal(t, nil, err)
+	defer rec.Free()
+
+	for i := 0; i < 10; i++ {
+		record.SetField(&rec, fields.First, time.Date(2017, time.May, 28, 15, 55, 0, 0, time.Local))
+		err = heap.WriteRecord(&rec)
+		assert.Equal(t, nil, err)
+	}
+
+	heap.Clear()
+
+	cursor, err := heap.FirstRecordPosition()
+	assert.Equal(t, errors.ErrMemHeapEmpty, err)
+	err = heap.GetRecord(&cursor, &rec)
+	assert.Equal(t, errors.ErrMemHeapEmpty, err)
+	cursor, err = heap.NextRecordPosition(cursor)
+	assert.Equal(t, errors.ErrMemHeapEmpty, err)
+}

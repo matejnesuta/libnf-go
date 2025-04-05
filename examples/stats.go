@@ -7,7 +7,7 @@ import (
 	"libnf/api/fields"
 	"libnf/api/file"
 	"libnf/api/filter"
-	"libnf/api/memheap"
+	memheap "libnf/api/memheapv2"
 	"libnf/api/record"
 )
 
@@ -31,22 +31,23 @@ func Stats() {
 		fmt.Println(err)
 	}
 
-	heap, err := memheap.NewMemHeap()
-	if err != nil {
-		fmt.Println(err)
-	}
+	heap := memheap.MemHeapV2{}
+	// heap, err := memheap.NewMemHeap()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
-	heap.Clear()
-	heap.EnableNfdumpCompat()
-	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
-	heap.SetAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
-	heap.SetAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	// heap.Clear()
+	heap.SetNfdumpComp(true)
+	heap.SortAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
+	heap.SortAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.First, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
+	heap.SortAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
 
 	for {
 		err = ptr.GetNextRecord(&rec)
@@ -62,8 +63,17 @@ func Stats() {
 	fmt.Println("")
 	fmt.Print("First\t\tDuration\tSrcAddr\t\tFlows\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
 
+	cursor, err := heap.FirstRecordPosition()
+	if err != nil {
+		panic(err)
+	}
+
 	for i := 0; i < 10; i++ {
-		err = heap.GetNextRecord(&rec)
+		err = heap.GetRecord(&cursor, &rec)
+		if err != nil {
+			break
+		}
+		cursor, err = heap.NextRecordPosition(cursor)
 		if err != nil {
 			break
 		}
@@ -94,12 +104,6 @@ func Stats() {
 		fmt.Print(brec.First.Format("2006-01-02 15:04:05"), " ")
 		fmt.Printf("| %.3f | %-15s| %8d | %4d | %4d | %4f | %4f | %4f \n", brec.Last.Sub(brec.First).Seconds(), brec.SrcAddr, brec.Flows, brec.Pkts, brec.Bytes, pps, bps, bpp)
 	}
-	heap.Free()
-	heap, err = memheap.NewMemHeap()
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer heap.Free()
 
 	ptr.Close()
 	err = ptr.OpenRead("api/testfiles/profiling.tmp", false, false)
@@ -110,16 +114,16 @@ func Stats() {
 	defer ptr.Close()
 
 	heap.Clear()
-	heap.EnableNfdumpCompat()
-	heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
-	heap.SetAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.DstAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
-	heap.SetAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SetAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SetNfdumpComp(true)
+	heap.SortAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
+	heap.SortAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.Last, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.DstAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
+	heap.SortAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
 
 	for {
 		err = ptr.GetNextRecord(&rec)
@@ -136,11 +140,21 @@ func Stats() {
 	fmt.Println("")
 	fmt.Print("First\t\tDuration\tSrcAddr\t\tFlows\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
 
+	cursor, err = heap.FirstRecordPosition()
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	for i := 0; i < 10; i++ {
-		err = heap.GetNextRecord(&rec)
+		err = heap.GetRecord(&cursor, &rec)
 		if err != nil {
 			break
 		}
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err != nil {
+			break
+		}
+
 		val, _ := rec.GetField(fields.Brec1)
 		brec, ok := val.(fields.BasicRecord1)
 		if !ok {

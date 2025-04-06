@@ -2,7 +2,6 @@ package record
 
 import (
 	"encoding/binary"
-	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	"libnf/internal"
@@ -290,7 +289,6 @@ func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 
 	case net.IP:
 		addr := convertIpToBytes(v)
-		fmt.Println(addr)
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&addr[0])))
 
 	case time.Time:

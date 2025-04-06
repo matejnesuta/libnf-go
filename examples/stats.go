@@ -16,7 +16,8 @@ func Stats() {
 	err := ptr.OpenRead("api/testfiles/profiling.tmp", false, false)
 
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
+		// fmt.Println(err)
 	}
 
 	rec, err := record.NewRecord()
@@ -31,7 +32,7 @@ func Stats() {
 		fmt.Println(err)
 	}
 
-	heap := memheap.MemHeapV2{}
+	heap := memheap.NewMemHeapV2()
 	// heap, err := memheap.NewMemHeap()
 	// if err != nil {
 	// 	fmt.Println(err)
@@ -54,9 +55,13 @@ func Stats() {
 		if err != nil {
 			break
 		}
+		val, _ := rec.GetField(fields.Brec1)
+		brec := val.(fields.BasicRecord1)
+		fmt.Println("Flows: ", brec.Flows)
 		if match, _ := filter.Match(rec); !match {
 			continue
 		}
+
 		heap.WriteRecord(&rec)
 	}
 	fmt.Println("Top 10 Src IP Addr ordered by bps:")

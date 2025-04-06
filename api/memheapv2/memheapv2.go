@@ -191,7 +191,7 @@ func getValues(record *record.Record, valueTemplateList []fieldOptions, pairset 
 	for _, x := range valueTemplateList {
 		val, err := record.GetField(x.field)
 		if err != nil {
-			return nil, err
+			val = nil
 		}
 		valVals = append(valVals, val)
 	}

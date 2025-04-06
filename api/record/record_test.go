@@ -586,6 +586,26 @@ func TestSetFieldIp(t *testing.T) {
 	assert.Equal(t, net.IPv4(192, 168, 0, 1).To4(), ip)
 }
 
+func TestSetFieldIpUsingParseIP(t *testing.T) {
+	rec, err := record.NewRecord()
+	assert.Equal(t, nil, err)
+	defer rec.Free()
+	addr := net.ParseIP("192.0.0.1")
+	err = record.SetField(&rec, fields.SrcAddr, addr)
+
+	assert.Equal(t, nil, err)
+	brec, err := rec.GetField(fields.Brec1)
+	assert.Equal(t, nil, err)
+	brec1, ok := brec.(fields.BasicRecord1)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, nil, err)
+	ip := brec1.SrcAddr
+
+	assert.Equal(t, true, ok)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, net.IPv4(192, 0, 0, 1).To4(), ip)
+}
+
 func TestSetFieldIpv6(t *testing.T) {
 	rec, err := record.NewRecord()
 	assert.Equal(t, nil, err)

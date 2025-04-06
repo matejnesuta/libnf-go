@@ -34,7 +34,7 @@ func TestGetInfo(t *testing.T) {
 
 	version, err := file.GetLibnfVersion()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "1.33", version)
+	assert.Equal(t, "1.34", version)
 
 	flows, err := file.GetFlows()
 	assert.Equal(t, nil, err)

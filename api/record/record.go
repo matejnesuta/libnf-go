@@ -2,6 +2,7 @@ package record
 
 import (
 	"encoding/binary"
+	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	"libnf/internal"
@@ -52,8 +53,9 @@ func isAllBytesZero(data []byte) bool {
 }
 
 func convertIpToBytes(ip net.IP) []byte {
-	if ip.To4() != nil {
-		return append(make([]byte, 12), []byte(ip)...)
+	newIP := ip.To4()
+	if newIP != nil {
+		return append(make([]byte, 12), []byte(newIP)...)
 	}
 	return []byte(ip.To16())
 }
@@ -287,7 +289,9 @@ func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 	// 	internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
 
 	case net.IP:
-		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&convertIpToBytes(v)[0])))
+		addr := convertIpToBytes(v)
+		fmt.Println(addr)
+		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&addr[0])))
 
 	case time.Time:
 		t := v.UnixMilli()

@@ -48,16 +48,13 @@ func Stats() {
 	heap.SortAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
 	heap.SortAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	heap.SortAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SortAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
 
 	for {
 		err = ptr.GetNextRecord(&rec)
 		if err != nil {
 			break
 		}
-		val, _ := rec.GetField(fields.Brec1)
-		brec := val.(fields.BasicRecord1)
-		fmt.Println("Flows: ", brec.Flows)
+
 		if match, _ := filter.Match(rec); !match {
 			continue
 		}
@@ -66,7 +63,7 @@ func Stats() {
 	}
 	fmt.Println("Top 10 Src IP Addr ordered by bps:")
 	fmt.Println("")
-	fmt.Print("First\t\tDuration\tSrcAddr\t\tFlows\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
+	fmt.Print("First\t\tDuration\tSrcAddr\t\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
 
 	cursor, err := heap.FirstRecordPosition()
 	if err != nil {
@@ -107,7 +104,7 @@ func Stats() {
 		}
 
 		fmt.Print(brec.First.Format("2006-01-02 15:04:05"), " ")
-		fmt.Printf("| %.3f | %-15s| %8d | %4d | %4d | %4f | %4f | %4f \n", brec.Last.Sub(brec.First).Seconds(), brec.SrcAddr, brec.Flows, brec.Pkts, brec.Bytes, pps, bps, bpp)
+		fmt.Printf("| %.3f | %-15s| %4d | %4d | %4f | %4f | %4f \n", brec.Last.Sub(brec.First).Seconds(), brec.SrcAddr, brec.Pkts, brec.Bytes, pps, bps, bpp)
 	}
 
 	ptr.Close()
@@ -128,7 +125,6 @@ func Stats() {
 	heap.SortAggrOptions(fields.DstAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
 	heap.SortAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	heap.SortAggrOptions(fields.Dpkts, memheap.AggrAuto, memheap.SortNone, 0, 0)
-	heap.SortAggrOptions(fields.AggrFlows, memheap.AggrAuto, memheap.SortNone, 0, 0)
 
 	for {
 		err = ptr.GetNextRecord(&rec)
@@ -143,7 +139,7 @@ func Stats() {
 	fmt.Println("")
 	fmt.Println("Top 10 Dst IP Addr ordered by bps:")
 	fmt.Println("")
-	fmt.Print("First\t\tDuration\tSrcAddr\t\tFlows\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
+	fmt.Print("First\t\tDuration\tSrcAddr\t\tPackets\tBytes\t\tPps\t\tBps\t\tBpp\n")
 
 	cursor, err = heap.FirstRecordPosition()
 	if err != nil {
@@ -185,6 +181,6 @@ func Stats() {
 		}
 
 		fmt.Print(brec.First.Format("2006-01-02 15:04:05"), " ")
-		fmt.Printf("| %.3f | %-15s| %8d | %4d | %4d | %4f | %4f | %4f \n", brec.Last.Sub(brec.First).Seconds(), brec.DstAddr, brec.Flows, brec.Pkts, brec.Bytes, pps, bps, bpp)
+		fmt.Printf("| %.3f | %-15s| %4d | %4d | %4f | %4f | %4f \n", brec.Last.Sub(brec.First).Seconds(), brec.DstAddr, brec.Pkts, brec.Bytes, pps, bps, bpp)
 	}
 }

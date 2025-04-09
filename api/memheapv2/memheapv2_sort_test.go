@@ -14,7 +14,7 @@ import (
 )
 
 func sortByUint8(t *testing.T, ports []uint16, protocols []uint8, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.Prot, memheap.AggrAuto, order, 0, 0)
@@ -85,7 +85,7 @@ func sortByUint8(t *testing.T, ports []uint16, protocols []uint8, order int) {
 }
 
 func sortByUint16(t *testing.T, bytes []uint64, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.Doctets, memheap.AggrAuto, memheap.SortNone, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, order, 0, 0)
@@ -156,7 +156,7 @@ func sortByUint16(t *testing.T, bytes []uint64, ports []uint16, order int) {
 }
 
 func sortByUint32(t *testing.T, as []uint32, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.EgressAclId, memheap.AggrAuto, order, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
@@ -197,7 +197,7 @@ func sortByUint32(t *testing.T, as []uint32, ports []uint16, order int) {
 }
 
 func sortByUint64(t *testing.T, bytes []uint64, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.Doctets, memheap.AggrAuto, order, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
@@ -268,7 +268,7 @@ func sortByUint64(t *testing.T, bytes []uint64, ports []uint16, order int) {
 }
 
 func sortByTime(t *testing.T, times []time.Time, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.First, memheap.AggrAuto, order, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
@@ -313,7 +313,7 @@ func sortByTime(t *testing.T, times []time.Time, ports []uint16, order int) {
 }
 
 func sortByIP(t *testing.T, srcAddrs []net.IP, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.SrcAddr, memheap.AggrKey, order, 32, 128)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
@@ -356,7 +356,7 @@ func sortByIP(t *testing.T, srcAddrs []net.IP, ports []uint16, order int) {
 }
 
 func sortByMac(t *testing.T, srcMacs []net.HardwareAddr, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.InSrcMac, memheap.AggrKey, order, 48, 128)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
@@ -398,7 +398,7 @@ func sortByMac(t *testing.T, srcMacs []net.HardwareAddr, ports []uint16, order i
 }
 
 func sortByDuration(t *testing.T, durations []uint64, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.CalcDuration, memheap.AggrAuto, order, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
@@ -440,7 +440,7 @@ func sortByDuration(t *testing.T, durations []uint64, ports []uint16, order int)
 }
 
 func sortByBps(t *testing.T, bpss []float64, ports []uint16, order int, calcField int, item int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(calcField, memheap.AggrAuto, order, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
@@ -482,7 +482,7 @@ func sortByBps(t *testing.T, bpss []float64, ports []uint16, order int, calcFiel
 }
 
 func sortByBpp(t *testing.T, bpps []float64, ports []uint16, order int) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.CalcBpp, memheap.AggrAuto, order, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)

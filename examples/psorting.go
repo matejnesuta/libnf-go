@@ -18,7 +18,7 @@ func Psorting() {
 	}
 	defer ptr.Close()
 
-	heap := memheap.NewMemHeapV2()
+	heap := memheap.NewMemHeapV2(64)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -56,6 +56,9 @@ func Psorting() {
 				if err != nil {
 					break
 				}
+				mutex.Lock()
+				i++
+				mutex.Unlock()
 
 				err = heap.WriteRecord(&rec)
 				if err != nil {

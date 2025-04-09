@@ -6,7 +6,6 @@ import (
 	"libnf/api/record"
 	"net"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -26,7 +25,7 @@ type fieldOptions struct {
 type MemHeapV2 struct {
 	keyTemplateList   []fieldOptions
 	valueTemplateList []fieldOptions
-	table             map[string]aggrRecord
+	table             shardedMap[aggrRecord]
 	statsMode         bool
 	sortOffset        int
 	sortField         int
@@ -34,18 +33,30 @@ type MemHeapV2 struct {
 	sortType          int
 	nfdumpComp        bool
 	sortedKeys        []string
+	shards            uint
 }
 
 type MemHeapCursor struct {
 	cursor uint64
 }
 
-var mapMux sync.Mutex
-
-func NewMemHeapV2() *MemHeapV2 {
-	return &MemHeapV2{
-		table: make(map[string]aggrRecord),
+func NewMemHeapV2(shards uint) *MemHeapV2 {
+	if shards == 0 {
+		shards = 1
 	}
+
+	return &MemHeapV2{
+		table:  newShardedMap[aggrRecord](shards),
+		shards: shards,
+	}
+}
+
+func (m *MemHeapV2) SetShards(shards uint) {
+	if shards == 0 {
+		shards = 1
+	}
+	m.shards = shards
+	m.table = newShardedMap[aggrRecord](shards)
 }
 
 func searchList(list *[]fieldOptions, field int) int {
@@ -251,8 +262,11 @@ func (m *MemHeapV2) WriteRecord(record *record.Record) error {
 	if err != nil {
 		return err
 	}
-	mapMux.Lock()
-	insertOrUpdateRecord(m.table, key, recs, m.valueTemplateList)
+
+	shard := m.table.getShard(key)
+	shard.Lock()
+	insertOrUpdateRecord(shard.m, key, recs, m.valueTemplateList)
+	shard.Unlock()
 	if pairset != 0 {
 		key2, keyVals2, err := buildKey(record, m.keyTemplateList, 2)
 		if err != nil {
@@ -264,11 +278,13 @@ func (m *MemHeapV2) WriteRecord(record *record.Record) error {
 				goto end
 			}
 		}
-		insertOrUpdateRecord(m.table, key2, recs, m.valueTemplateList)
+		shard2 := m.table.getShard(key2)
+		shard2.Lock()
+		insertOrUpdateRecord(shard2.m, key2, recs, m.valueTemplateList)
+		shard2.Unlock()
 	}
 
 end:
-	mapMux.Unlock()
 	return nil
 }
 
@@ -278,7 +294,7 @@ func (m *MemHeapV2) SetNfdumpComp(on bool) {
 
 func (m *MemHeapV2) FirstRecordPosition() (MemHeapCursor, error) {
 	var cursor MemHeapCursor
-	if len(m.table) == 0 {
+	if m.table.itemCount() == 0 {
 		return cursor, errors.ErrMemHeapEmpty
 	}
 	cursor.cursor = 0
@@ -287,11 +303,11 @@ func (m *MemHeapV2) FirstRecordPosition() (MemHeapCursor, error) {
 
 func (m *MemHeapV2) NextRecordPosition(cursor MemHeapCursor) (MemHeapCursor, error) {
 	var newCursor MemHeapCursor
-	if len(m.table) == 0 {
+	if m.table.itemCount() == 0 {
 		return newCursor, errors.ErrMemHeapEmpty
 	}
 	newCursor.cursor = cursor.cursor + 1
-	if newCursor.cursor >= uint64(len(m.table)) {
+	if newCursor.cursor >= uint64(m.table.itemCount()) {
 		return newCursor, errors.ErrMemHeapEnd
 	}
 	return newCursor, nil
@@ -330,7 +346,7 @@ func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 
 	rec.Clear()
 
-	if len(m.table) == 0 {
+	if m.table.itemCount() == 0 {
 		return errors.ErrMemHeapEmpty
 	}
 
@@ -343,11 +359,11 @@ func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 		sortRecords(m)
 	}
 
-	if cursor.cursor >= uint64(len(m.table)) {
+	if cursor.cursor >= uint64(m.table.itemCount()) {
 		return errors.ErrMemHeapEnd
 	}
 	key := m.sortedKeys[cursor.cursor]
-	recs := m.table[key]
+	recs := m.table.get(key)
 	for i, val := range recs.keys {
 		setFieldInRecord(rec, m.keyTemplateList[i].field, val)
 	}
@@ -360,7 +376,7 @@ func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 }
 
 func (m *MemHeapV2) Clear() {
-	m.table = make(map[string]aggrRecord)
+	m.table = newShardedMap[aggrRecord](m.shards)
 	m.sortedKeys = nil
 	m.keyTemplateList = nil
 	m.valueTemplateList = nil

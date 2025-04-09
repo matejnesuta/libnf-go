@@ -10,7 +10,7 @@ import (
 )
 
 func MemHeapV2() {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	heap.SortAggrOptions(fields.SrcPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 	heap.SortAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
 	heap.SortAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortNone, 0, 0)

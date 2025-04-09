@@ -23,12 +23,12 @@ func Sorting() {
 	}
 	defer rec.Free()
 
-	heap := memheap.NewMemHeapV2()
+	heap := memheap.NewMemHeapV2(1)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = heap.SortAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortDesc, 24, 64)
+	err = heap.SortAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
 	if err != nil {
 		panic("uhhhh")
 	}
@@ -36,7 +36,7 @@ func Sorting() {
 	heap.SortAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
 	heap.SortAggrOptions(fields.Last, memheap.AggrMax, memheap.SortNone, 0, 0)
 	heap.SortAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortNone, 0, 0)
-	heap.SortAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
+	heap.SortAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortDesc, 0, 0)
 	// heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
 
 	var i uint64 = 0

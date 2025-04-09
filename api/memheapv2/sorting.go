@@ -2,6 +2,7 @@ package memheapv2
 
 import (
 	"bytes"
+	"fmt"
 	"libnf/api/fields"
 	"net"
 	"sort"
@@ -105,9 +106,9 @@ func calculateSortValue(m *MemHeapV2, key string) {
 	var arr []any
 
 	if m.sortByKey {
-		arr = m.table[key].keys
+		arr = m.table.get(key).keys
 	} else {
-		arr = m.table[key].values
+		arr = m.table.get(key).values
 	}
 
 	if m.sortField == fields.CalcDuration {
@@ -136,42 +137,50 @@ func calculateSortValue(m *MemHeapV2, key string) {
 }
 
 func sortRecords(m *MemHeapV2) {
-	m.sortedKeys = make([]string, 0, len(m.table))
+	fmt.Println(m.table.itemCount())
+	m.sortedKeys = make([]string, 0, m.table.itemCount())
 
 	_, ok := dependencies[m.sortField]
 
-	for key := range m.table {
-		if ok {
-			calculateSortValue(m, key)
+	for _, shard := range m.table {
+		for key := range shard.m {
+			if ok {
+				calculateSortValue(m, key)
+			}
+			m.sortedKeys = append(m.sortedKeys, key)
 		}
-		m.sortedKeys = append(m.sortedKeys, key)
 	}
 
 	if m.sortType != SortNone {
 		if m.sortByKey {
 			if m.sortType == SortAsc {
 				sort.Slice(m.sortedKeys, func(i, j int) bool {
-					val1 := m.table[m.sortedKeys[i]].keys[m.sortOffset]
-					val2 := m.table[m.sortedKeys[j]].keys[m.sortOffset]
+					val1 := m.table.get(m.sortedKeys[i]).keys[m.sortOffset]
+					val2 := m.table.get(m.sortedKeys[j]).keys[m.sortOffset]
 					return lessThan(val1, val2)
 				})
 			} else {
 				sort.Slice(m.sortedKeys, func(i, j int) bool {
-					val1 := m.table[m.sortedKeys[i]].keys[m.sortOffset]
-					val2 := m.table[m.sortedKeys[j]].keys[m.sortOffset]
+					val1 := m.table.get(m.sortedKeys[i]).keys[m.sortOffset]
+					val2 := m.table.get(m.sortedKeys[j]).keys[m.sortOffset]
 					return greaterThan(val1, val2)
 				})
 			}
 		} else {
-			sort.Slice(m.sortedKeys, func(i, j int) bool {
-				val1 := m.table[m.sortedKeys[i]].values[m.sortOffset]
-				val2 := m.table[m.sortedKeys[j]].values[m.sortOffset]
-				return lessThan(val1, val2)
-			})
-			if m.sortType == SortDesc {
+			if m.sortType == SortAsc {
 				sort.Slice(m.sortedKeys, func(i, j int) bool {
-					val1 := m.table[m.sortedKeys[i]].values[m.sortOffset]
-					val2 := m.table[m.sortedKeys[j]].values[m.sortOffset]
+					val1 := m.table.get(m.sortedKeys[i]).values[m.sortOffset]
+					val2 := m.table.get(m.sortedKeys[j]).values[m.sortOffset]
+					return lessThan(val1, val2)
+				})
+			}
+			if m.sortType == SortDesc {
+
+				sort.Slice(m.sortedKeys, func(i, j int) bool {
+					key1 := m.table.get(m.sortedKeys[i])
+					key2 := m.table.get(m.sortedKeys[j])
+					val1 := key1.values[m.sortOffset]
+					val2 := key2.values[m.sortOffset]
 					return greaterThan(val1, val2)
 				})
 			}

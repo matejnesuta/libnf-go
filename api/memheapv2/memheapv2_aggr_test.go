@@ -1,12 +1,14 @@
 package memheapv2_test
 
 import (
+	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	"libnf/api/file"
 	memheap "libnf/api/memheapv2"
 	"libnf/api/record"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
@@ -14,7 +16,7 @@ import (
 )
 
 func TestAggrMinMaxField(t *testing.T) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.Last, memheap.AggrMax, memheap.SortNone, 0, 0)
@@ -57,7 +59,7 @@ func TestAggrMinMaxField(t *testing.T) {
 }
 
 func TestAggrPerPairField(t *testing.T) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
@@ -124,7 +126,7 @@ func TestAggrPerPairField(t *testing.T) {
 }
 
 func TestAggrPerPairFieldWithNfdumpComp(t *testing.T) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortAsc, 0, 0)
 	assert.Nil(t, err)
 	err = heap.SortAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
@@ -201,7 +203,7 @@ func TestStatistics(t *testing.T) {
 
 	var records int = 0
 
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 
 	err = heap.SortAggrOptions(fields.PairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
 	assert.Equal(t, nil, err)
@@ -255,8 +257,99 @@ func TestStatistics(t *testing.T) {
 	assert.Equal(t, 1982, records+1)
 }
 
+func TestStatisticsParallel(t *testing.T) {
+	var file = file.File{}
+	err := file.OpenRead("../testfiles/nfcapd.201705281555", false, false)
+	defer file.Close()
+	assert.Equal(t, nil, err)
+
+	var records int = 0
+
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(64)
+
+	err = heap.SortAggrOptions(fields.PairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortNone, 0, 0)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.First, memheap.AggrMin, memheap.SortNone, 0, 0)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.Doctets, memheap.AggrSum, memheap.SortDesc, 0, 0)
+	assert.Equal(t, nil, err)
+	err = heap.SortAggrOptions(fields.Dpkts, memheap.AggrSum, memheap.SortNone, 0, 0)
+	assert.Equal(t, nil, err)
+
+	var wg sync.WaitGroup
+	mutex := &sync.Mutex{}
+
+	for x := 0; x < 16; x++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			mutex.Lock()
+			rec, err := record.NewRecord()
+			mutex.Unlock()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			defer rec.Free()
+			for {
+				mutex.Lock()
+				err = file.GetNextRecord(&rec)
+				mutex.Unlock()
+				if err != nil {
+					break
+				}
+				mutex.Lock()
+				records++
+				mutex.Unlock()
+
+				err = heap.WriteRecord(&rec)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		}()
+	}
+	wg.Wait()
+
+	assert.Equal(t, 2035, records)
+
+	var doctets = [10]uint64{38232, 12773, 12721, 12514, 9959, 3988, 3988, 525, 400, 328}
+	var packets = [10]uint64{64, 22, 21, 17, 94, 29, 29, 9, 8, 1}
+
+	cursor, err := heap.FirstRecordPosition()
+
+	assert.Nil(t, err)
+	records = 0
+	rec, err := record.NewRecord()
+	assert.Equal(t, nil, err)
+	defer rec.Free()
+
+	for {
+		err = heap.GetRecord(&cursor, &rec)
+		if err != nil {
+			break
+		}
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err != nil {
+			break
+		}
+		if records < 10 {
+			val, _ := rec.GetField(fields.Doctets)
+			assert.Equal(t, doctets[records], val)
+			val, _ = rec.GetField(fields.Dpkts)
+			assert.Equal(t, packets[records], val)
+		}
+
+		records++
+	}
+
+	assert.Equal(t, 1982, records+1)
+}
+
 func TestSetCursorOnEmptyHeap(t *testing.T) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	cursor, err := heap.FirstRecordPosition()
 	assert.Equal(t, errors.ErrMemHeapEmpty, err)
 	rec, err := record.NewRecord()
@@ -269,7 +362,7 @@ func TestSetCursorOnEmptyHeap(t *testing.T) {
 }
 
 func TestClear(t *testing.T) {
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2()
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
 	err := heap.SortAggrOptions(fields.PairAddr, memheap.AggrKey, memheap.SortNone, 24, 64)
 	assert.Equal(t, nil, err)
 	err = heap.SortAggrOptions(fields.PairPort, memheap.AggrKey, memheap.SortNone, 0, 0)

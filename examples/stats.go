@@ -32,7 +32,7 @@ func Stats() {
 		fmt.Println(err)
 	}
 
-	heap := memheap.NewMemHeapV2()
+	heap := memheap.NewMemHeapV2(1)
 	// heap, err := memheap.NewMemHeap()
 	// if err != nil {
 	// 	fmt.Println(err)

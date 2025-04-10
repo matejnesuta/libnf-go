@@ -98,7 +98,7 @@ func greaterThan(a, b interface{}) bool {
 	}
 }
 
-func calculateSortValue(m *MemHeapV2, key string) {
+func calculateSortValue(m *MemHeapV2, key string, deps map[int]int) {
 	if m.sortType == SortNone {
 		return
 	}
@@ -112,40 +112,64 @@ func calculateSortValue(m *MemHeapV2, key string) {
 	}
 
 	if m.sortField == fields.CalcDuration {
-		first := arr[m.sortOffset+1].(time.Time)
-		last := arr[m.sortOffset+2].(time.Time)
+		first := arr[deps[fields.First]].(time.Time)
+		last := arr[deps[fields.Last]].(time.Time)
 		arr[m.sortOffset] = last.Sub(first).Milliseconds()
 	} else if m.sortField == fields.CalcBps || m.sortField == fields.CalcPps {
-		item := arr[m.sortOffset+1].(uint64)
-		first := arr[m.sortOffset+3].(time.Time)
-		last := arr[m.sortOffset+4].(time.Time)
+		first := arr[deps[fields.First]].(time.Time)
+		last := arr[deps[fields.Last]].(time.Time)
 		duration := last.Sub(first).Seconds()
 		if duration == 0 {
 			arr[m.sortOffset] = float64(0)
 		} else if m.sortField == fields.CalcBps {
-			arr[m.sortOffset] = float64(item) * 8 / duration
+			arr[m.sortOffset] = float64(arr[deps[fields.Doctets]].(uint64)) * 8 / duration
 		} else {
-			arr[m.sortOffset] = float64(item) / duration
+			arr[m.sortOffset] = float64(arr[deps[fields.Dpkts]].(uint64)) / duration
 		}
 	} else {
-		first := arr[m.sortOffset+1].(uint64)
-		last := arr[m.sortOffset+2].(uint64)
+		first := arr[deps[fields.Dpkts]].(uint64)
+		last := arr[deps[fields.Doctets]].(uint64)
 		arr[m.sortOffset] = float64(last) / float64(first)
 	}
 
 	// TODO add more cases
 }
 
+func getDepIndexes(m *MemHeapV2, field int, depIndexes map[int]int) map[int]int {
+	deps, ok := dependencies[field]
+	if !ok {
+		return nil
+	}
+
+	for _, dep := range deps {
+		index := searchList(&m.keyTemplateList, dep)
+		if index == -1 {
+			index = searchList(&m.valueTemplateList, dep)
+		}
+		if index == -1 {
+			continue
+		}
+		_, ok := dependencies[field]
+		if ok {
+			depIndexes = getDepIndexes(m, dep, depIndexes)
+		} else {
+			depIndexes[dep] = int(index)
+		}
+	}
+	return depIndexes
+}
+
 func sortRecords(m *MemHeapV2) {
 	fmt.Println(m.table.itemCount())
 	m.sortedKeys = make([]string, 0, m.table.itemCount())
 
-	_, ok := dependencies[m.sortField]
+	deps := make(map[int]int, 0)
+	deps = getDepIndexes(m, m.sortField, deps)
 
 	for _, shard := range m.table {
 		for key := range shard.m {
-			if ok {
-				calculateSortValue(m, key)
+			if len(deps) > 0 {
+				calculateSortValue(m, key, deps)
 			}
 			m.sortedKeys = append(m.sortedKeys, key)
 		}

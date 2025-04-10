@@ -679,3 +679,49 @@ func TestSortByBppDesc(t *testing.T) {
 	ports := [3]uint16{53, 80, 443}
 	sortByBpp(t, bpss[:], ports[:], memheap.SortDesc)
 }
+
+func TestSortByBpsWhenMultipleComputedValuesAreUsed(t *testing.T) {
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
+	err := heap.SortAggrOptions(fields.CalcDuration, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.SrcPort, memheap.AggrAuto, memheap.SortNone, 0, 0)
+	assert.Nil(t, err)
+	err = heap.SortAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
+	assert.Nil(t, err)
+
+	rec, _ := record.NewRecord()
+	defer rec.Free()
+
+	inputBytes := [3]uint64{70, 20, 80}
+	inputPorts := [3]uint16{80, 443, 53}
+	bpss := [3]float64{320, 280, 80}
+	ports := [3]uint16{53, 80, 443}
+
+	for i := 0; i < 3; i++ {
+		record.SetField(&rec, fields.First, time.Date(2017, time.May, 28, 15, 55, 0, 0, time.Local))
+		record.SetField(&rec, fields.Last, time.Date(2017, time.May, 28, 15, 55, 2, 0, time.Local))
+		record.SetField(&rec, fields.Doctets, uint64(inputBytes[i]))
+		record.SetField(&rec, fields.SrcPort, inputPorts[i])
+		err := heap.WriteRecord(&rec)
+		assert.Equal(t, nil, err)
+	}
+
+	i := 0
+	cursor, err := heap.FirstRecordPosition()
+	assert.Nil(t, err)
+	for i < 3 {
+		err := heap.GetRecord(&cursor, &rec)
+		assert.Nil(t, err)
+
+		val, _ := rec.GetField(fields.CalcBps)
+		assert.Equal(t, bpss[i], val)
+		val, _ = rec.GetField(fields.SrcPort)
+		assert.Equal(t, ports[i], val)
+		i++
+		cursor, err = heap.NextRecordPosition(cursor)
+		if err == errors.ErrMemHeapEnd {
+			break
+		}
+		assert.Nil(t, err)
+	}
+}

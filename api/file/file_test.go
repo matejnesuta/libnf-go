@@ -289,22 +289,22 @@ func TestCreateFileWithWeakErr(t *testing.T) {
 	assert.Equal(t, false, file.Opened())
 }
 
-// func TestCreateAnonymizedFile(t *testing.T) {
-// 	var file LnfFile.File
-// 	err := file.OpenWrite("../tmp/anon-file.tmp", "", true, 0, false)
-// 	assert.Equal(t, nil, err)
-// 	assert.Equal(t, true, file.Opened())
-// 	assert.Equal(t, nil, file.Close())
-// 	assert.Equal(t, false, file.Opened())
-// 	err = file.OpenRead("../tmp/anon-file.tmp", true, false)
-// 	assert.Equal(t, nil, err)
-// 	assert.Equal(t, true, file.Opened())
-// 	anon, err := file.IsAnonymized()
-// 	assert.Equal(t, nil, err)
-// 	assert.Equal(t, true, anon)
-// 	assert.Equal(t, nil, file.Close())
-// 	assert.Equal(t, false, file.Opened())
-// }
+func TestCreateAnonymizedFile(t *testing.T) {
+	var file LnfFile.File
+	err := file.OpenWrite("../tmp/anon-file.tmp", "", true, 0, false)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, file.Opened())
+	assert.Equal(t, nil, file.Close())
+	assert.Equal(t, false, file.Opened())
+	err = file.OpenRead("../tmp/anon-file.tmp", true, false)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, file.Opened())
+	anon, err := file.IsAnonymized()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, anon)
+	assert.Equal(t, nil, file.Close())
+	assert.Equal(t, false, file.Opened())
+}
 
 func TestWriteRecordToOpenedFile(t *testing.T) {
 	var outputFile LnfFile.File

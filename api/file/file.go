@@ -61,7 +61,7 @@ func getBoolInfo(info int, f *File) (bool, error) {
 		return false, err
 	}
 	value := *(*int)(unsafe.Pointer(data))
-	return value == 1, nil
+	return value != 0, nil
 }
 
 func getUint64Info(info int, f *File) (uint64, error) {

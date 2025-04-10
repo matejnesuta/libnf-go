@@ -129,6 +129,8 @@ func calculateSortValue(m *MemHeapV2, key string, deps map[int]int) {
 	} else {
 		first := arr[deps[fields.Dpkts]].(uint64)
 		last := arr[deps[fields.Doctets]].(uint64)
+		fmt.Println("first: ", first)
+		fmt.Println("last: ", last)
 		arr[m.sortOffset] = float64(last) / float64(first)
 	}
 
@@ -149,7 +151,7 @@ func getDepIndexes(m *MemHeapV2, field int, depIndexes map[int]int) map[int]int 
 		if index == -1 {
 			continue
 		}
-		_, ok := dependencies[field]
+		_, ok := dependencies[dep]
 		if ok {
 			depIndexes = getDepIndexes(m, dep, depIndexes)
 		} else {

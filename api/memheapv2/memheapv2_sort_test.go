@@ -491,7 +491,7 @@ func sortByBpp(t *testing.T, bpps []float64, ports []uint16, order int) {
 	rec, _ := record.NewRecord()
 	defer rec.Free()
 
-	inputBytes := [4]uint64{70, 20, 80, 2}
+	inputBytes := [4]uint64{70, 20, 80, 110}
 	inputPorts := [4]uint16{80, 443, 53, 80}
 
 	for i := 0; i < 4; i++ {
@@ -669,14 +669,14 @@ func TestSortByPpsDesc(t *testing.T) {
 }
 
 func TestSortByBppAsc(t *testing.T) {
-	bpss := [3]float64{10, 36, 40}
-	ports := [3]uint16{443, 80, 53}
+	bpss := [3]float64{10, 40, 45}
+	ports := [3]uint16{443, 53, 80}
 	sortByBpp(t, bpss[:], ports[:], memheap.SortAsc)
 }
 
 func TestSortByBppDesc(t *testing.T) {
-	bpss := [3]float64{40, 36, 10}
-	ports := [3]uint16{53, 80, 443}
+	bpss := [3]float64{45, 40, 10}
+	ports := [3]uint16{80, 53, 443}
 	sortByBpp(t, bpss[:], ports[:], memheap.SortDesc)
 }
 

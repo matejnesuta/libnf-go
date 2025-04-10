@@ -1,7 +1,6 @@
 package record_test
 
 import (
-	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	"libnf/api/file"
@@ -655,7 +654,6 @@ func TestSetFieldBrec1(t *testing.T) {
 		DstAddr: net.IPv4(192, 168, 0, 2).To4(),
 	}
 
-	fmt.Println([]byte(input.SrcAddr))
 	err = record.SetField(&rec, fields.Brec1, input)
 
 	assert.Equal(t, nil, err)

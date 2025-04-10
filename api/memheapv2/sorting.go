@@ -2,7 +2,6 @@ package memheapv2
 
 import (
 	"bytes"
-	"fmt"
 	"libnf/api/fields"
 	"net"
 	"sort"
@@ -129,8 +128,6 @@ func calculateSortValue(m *MemHeapV2, key string, deps map[int]int) {
 	} else {
 		first := arr[deps[fields.Dpkts]].(uint64)
 		last := arr[deps[fields.Doctets]].(uint64)
-		fmt.Println("first: ", first)
-		fmt.Println("last: ", last)
 		arr[m.sortOffset] = float64(last) / float64(first)
 	}
 
@@ -162,7 +159,6 @@ func getDepIndexes(m *MemHeapV2, field int, depIndexes map[int]int) map[int]int 
 }
 
 func sortRecords(m *MemHeapV2) {
-	fmt.Println(m.table.itemCount())
 	m.sortedKeys = make([]string, 0, m.table.itemCount())
 
 	deps := make(map[int]int, 0)

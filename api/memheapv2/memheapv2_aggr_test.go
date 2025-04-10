@@ -1,7 +1,6 @@
 package memheapv2_test
 
 import (
-	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	"libnf/api/file"
@@ -289,7 +288,6 @@ func TestStatisticsParallel(t *testing.T) {
 			rec, err := record.NewRecord()
 			mutex.Unlock()
 			if err != nil {
-				fmt.Println(err)
 				return
 			}
 			defer rec.Free()
@@ -306,7 +304,6 @@ func TestStatisticsParallel(t *testing.T) {
 
 				err = heap.WriteRecord(&rec)
 				if err != nil {
-					fmt.Println(err)
 				}
 			}
 		}()

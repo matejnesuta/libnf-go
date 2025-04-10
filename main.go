@@ -13,9 +13,14 @@ import (
 func helpAndExit() {
 	fmt.Println("Usage: <program> <option> [--profile]")
 	fmt.Println("Options:")
-	fmt.Println("  reader - Run reader()")
-	fmt.Println("  writer - Run writer()")
-	fmt.Println("  filtering - Run filtering()")
+	fmt.Println("  reader - Run simple reader example")
+	fmt.Println("  writer - Run simple writer example")
+	fmt.Println("  filtering - Run filtering example")
+	fmt.Println("  sorting - Run sorting example")
+	fmt.Println("  stats - Run stats example")
+	fmt.Println("  memheapv1 - Run memheapv1 example")
+	fmt.Println("  memheapv2 - Run memheapv2 example")
+	fmt.Println("  psorting - Run sorting example with parallel writing into the heap")
 	fmt.Println("  --profile - Run with CPU and memory profiling")
 	os.Exit(1)
 }

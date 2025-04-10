@@ -1,7 +1,6 @@
 package memheapv2_test
 
 import (
-	"fmt"
 	"libnf/api/errors"
 	"libnf/api/fields"
 	memheap "libnf/api/memheapv2"
@@ -509,9 +508,7 @@ func sortByBpp(t *testing.T, bpps []float64, ports []uint16, order int) {
 		err := heap.GetRecord(&cursor, &rec)
 		assert.Nil(t, err)
 		val, _ := rec.GetField(fields.CalcBpp)
-		fmt.Print(val, " ")
 		val, _ = rec.GetField(fields.SrcPort)
-		fmt.Println(val)
 		assert.Equal(t, ports[i], val)
 		i++
 		cursor, err = heap.NextRecordPosition(cursor)

@@ -210,10 +210,6 @@ func getValues(record *record.Record, valueTemplateList []fieldOptions, pairset 
 }
 
 func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecord, values []fieldOptions) {
-	// update record
-	// fmt.Println("Values: ", rec.values)
-	// fmt.Println("Key: ", key)
-	// fmt.Println("Input: ", rec)
 	if oldRec, ok := table[key]; ok {
 		newValues := make([]any, len(oldRec.values))
 		copy(newValues, oldRec.values)
@@ -234,12 +230,8 @@ func insertOrUpdateRecord(table map[string]aggrRecord, key string, rec aggrRecor
 		rec.values = newValues // Ensure `rec.values` is a fresh copy
 		table[key] = rec
 	} else {
-		// fmt.Println("Inserting record")
-		// fmt.Println("New record: ", rec)
 		table[key] = rec
 	}
-	// fmt.Println("--------------------------------")
-
 }
 
 func (m *MemHeapV2) WriteRecord(record *record.Record) error {
@@ -349,11 +341,6 @@ func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 	if m.table.itemCount() == 0 {
 		return errors.ErrMemHeapEmpty
 	}
-
-	// fmt.Println(m.valueTemplateList)
-	// fmt.Println("sort offset: ", m.sortOffset)
-	// fmt.Println("sort field: ", m.sortField)
-	// fmt.Println("sort by key: ", m.sortByKey)
 
 	if m.sortedKeys == nil {
 		sortRecords(m)

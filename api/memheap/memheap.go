@@ -1,5 +1,10 @@
 package memheap
 
+// #cgo CFLAGS: -I/usr/local/include
+// #cgo LDFLAGS: -L/usr/local/lib -lnf
+// #include "libnf.h"
+import "C"
+
 import (
 	"libnf/api/errors"
 	"libnf/api/record"
@@ -131,7 +136,11 @@ func (m *MemHeap) WriteRecord(r *record.Record) error {
 	} else if !r.Allocated() {
 		return errors.ErrRecordNotAllocated
 	}
-	status := internal.Mem_write(m.ptr, r.GetPtr())
+
+	status := int(C.lnf_mem_write(
+		(unsafe.Pointer(m.ptr)),
+		(unsafe.Pointer(r.GetPtr())),
+	))
 	if status == internal.ERR_NOMEM {
 		return errors.ErrNoMem
 	} else if status == internal.ERR_OTHER {

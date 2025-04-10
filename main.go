@@ -73,6 +73,8 @@ func main() {
 		examples.Sorting()
 	} else if os.Args[1] == "stats" {
 		examples.Stats()
+	} else if os.Args[1] == "memheapv1" {
+		examples.MemHeapV1()
 	} else if os.Args[1] == "memheapv2" {
 		examples.MemHeapV2()
 	} else if os.Args[1] == "psorting" {

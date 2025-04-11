@@ -28,6 +28,14 @@ func TestGetInfo(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, false, anonymized)
 
+	first, err := file.GetFirst()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "2017-05-28 15:53:46", first.Format("2006-01-02 15:04:05"))
+
+	last, err := file.GetLast()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "2017-05-28 15:56:41", last.Format("2006-01-02 15:04:05"))
+
 	blocks, err := file.GetBlocks()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, uint64(2), blocks)

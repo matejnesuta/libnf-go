@@ -6,7 +6,6 @@ import (
 	"libnf/api/fields"
 	"libnf/internal"
 	"net"
-	"reflect"
 	"strings"
 	"time"
 	"unsafe"
@@ -262,43 +261,67 @@ func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 		return errors.ErrUnknownFld
 	}
 
-	if reflect.TypeOf(value).Kind() != reflect.TypeOf(expectedType).Kind() {
-		return errors.ErrMismatchingDataTypes
-	}
-
 	switch v := any(value).(type) {
 	case uint64:
+		_, ok := expectedType.(uint64)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		var val uint64 = v
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
 
 	case uint32:
+		_, ok := expectedType.(uint32)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		val := v
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
 
 	case uint16:
+		_, ok := expectedType.(uint16)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		val := v
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
 
 	case uint8:
+		_, ok := expectedType.(uint8)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		val := v
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
 
-	// case float64:
-	// 	val := v
-	// 	internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&val)))
-
 	case net.IP:
+		_, ok := expectedType.(net.IP)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		addr := convertIpToBytes(v)
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&addr[0])))
 
 	case time.Time:
+		_, ok := expectedType.(time.Time)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		t := v.UnixMilli()
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&t)))
 
 	case net.HardwareAddr:
+		_, ok := expectedType.(net.HardwareAddr)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&v[0])))
 
 	case fields.BasicRecord1:
+		_, ok := expectedType.(fields.BasicRecord1)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		brec1 := internal.NewLnf_brec1_t()
 		brec1.SetFirst(uint64(v.First.UnixMilli()))
 		brec1.SetLast(uint64(v.Last.UnixMilli()))
@@ -327,6 +350,10 @@ func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 		internal.DeleteLnf_ip_t(dstaddr_t)
 
 	case fields.Acl:
+		_, ok := expectedType.(fields.Acl)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		aclPtr := internal.NewLnf_acl_t()
 		aclPtr.SetAcl_id(v.AclId)
 		aclPtr.SetAce_id(v.AceId)
@@ -335,10 +362,18 @@ func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 		internal.DeleteLnf_acl_t(aclPtr)
 
 	case fields.Mpls:
+		_, ok := expectedType.(fields.Mpls)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		mplsPtr := unsafe.Pointer(&v)
 		internal.Rec_fset(r.ptr, field, uintptr(mplsPtr))
 
 	case string:
+		_, ok := expectedType.(string)
+		if !ok {
+			return errors.ErrMismatchingDataTypes
+		}
 		buf := append([]byte(v), 0)
 		internal.Rec_fset(r.ptr, field, uintptr(unsafe.Pointer(&buf[0])))
 

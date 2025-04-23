@@ -6,6 +6,7 @@ import (
 	"libnf/api/file"
 	"libnf/api/memheap"
 	"libnf/api/record"
+	"runtime"
 )
 
 func MemHeapV1() {
@@ -40,6 +41,7 @@ func MemHeapV1() {
 	// heap.SetAggrOptions(fields.CalcBps, memheap.AggrAuto, memheap.SortDesc, 0, 0)
 
 	var i uint64 = 0
+	runtime.LockOSThread()
 	for {
 		err = ptr.GetNextRecord(&rec)
 		if err != nil {
@@ -51,6 +53,7 @@ func MemHeapV1() {
 		}
 		i++
 	}
+	runtime.UnlockOSThread()
 	fmt.Println("Total records in file: ", i)
 	i = 0
 	for {

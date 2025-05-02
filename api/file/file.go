@@ -7,6 +7,7 @@ import (
 	"unsafe"
 )
 import (
+	"bytes"
 	"libnf/api/record"
 	"time"
 )
@@ -34,45 +35,53 @@ const (
 	CompBZ2 int = internal.COMP_BZ2 // BZ2 compression.
 )
 
-func getInfo(info int, f *File) (uintptr, error) {
-	if !(*f).opened {
-		return 0, errors.ErrFileNotOpened
+func getInfo(info int, f *File) ([]byte, error) {
+	if !f.opened {
+		return nil, errors.ErrFileNotOpened
 	}
-	buf := make([]byte, internal.INFO_BUFSIZE) // Allocate memory
+	buf := make([]byte, internal.INFO_BUFSIZE)
 	data := uintptr(unsafe.Pointer(&buf[0]))
-	status := internal.Info((*f).ptr, info, data, int64(internal.INFO_BUFSIZE))
-	if status == internal.ERR_NOMEM {
-		return data, errors.ErrNoMem
+
+	status := internal.Info(f.ptr, info, data, int64(len(buf)))
+
+	switch status {
+	case internal.ERR_NOMEM:
+		return nil, errors.ErrNoMem
+	case internal.ERR_OTHER:
+		return nil, errors.ErrOther
+	default:
+		return buf, nil
 	}
-	if status == internal.ERR_OTHER {
-		return data, errors.ErrOther
-	}
-	return data, nil
 }
 
 func getStringInfo(info int, f *File) (string, error) {
-	data, err := getInfo(info, f)
+	buf, err := getInfo(info, f)
 	if err != nil {
 		return "", err
 	}
-	return C.GoString((*C.char)(unsafe.Pointer(data))), nil
+	// Look for null terminator
+	n := bytes.IndexByte(buf, 0)
+	if n < 0 {
+		n = len(buf)
+	}
+	return string(buf[:n]), nil
 }
 
 func getBoolInfo(info int, f *File) (bool, error) {
-	data, err := getInfo(info, f)
+	buf, err := getInfo(info, f)
 	if err != nil {
 		return false, err
 	}
-	value := *(*int)(unsafe.Pointer(data))
-	return value != 0, nil
+	val := *(*int)(unsafe.Pointer(&buf[0]))
+	return val != 0, nil
 }
 
 func getUint64Info(info int, f *File) (uint64, error) {
-	data, err := getInfo(info, f)
+	buf, err := getInfo(info, f)
 	if err != nil {
 		return 0, err
 	}
-	return *(*uint64)(unsafe.Pointer(data)), nil
+	return *(*uint64)(unsafe.Pointer(&buf[0])), nil
 }
 
 func getTimestamp(info int, f *File) (time.Time, error) {

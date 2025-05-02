@@ -56,6 +56,7 @@ func TestMatchClearFilter(t *testing.T) {
 	assert.Equal(t, nil, err)
 	err = filter.Free()
 	assert.Equal(t, nil, err)
+	assert.Equal(t, "", filter.String())
 	_, err = filter.Match(record)
 	assert.Equal(t, LnfErr.ErrFilterNotInit, err)
 	err = record.Free()

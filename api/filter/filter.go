@@ -40,6 +40,7 @@ func (f *Filter) Free() error {
 	}
 	internal.Filter_free(f.ptr)
 	f.allocated = false
+	f.repr = ""
 	return nil
 }
 

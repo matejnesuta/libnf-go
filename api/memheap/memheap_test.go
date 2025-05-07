@@ -545,4 +545,17 @@ func TestNfdumpCompMode(t *testing.T) {
 		assert.Equal(t, bytes[i], brec.Bytes)
 		i++
 	}
+	keyRec, _ := record.NewRecord()
+	record.SetField(&keyRec, fields.SrcPort, uint16(53))
+	cursor, err := memHeap.GetRecordWithKey(&keyRec)
+	assert.Equal(t, nil, err)
+
+	memHeap.GetRecordWithCursor(&cursor, &rec)
+	val, _ := rec.GetField(fields.SrcPort)
+	srcport := val.(uint16)
+	assert.Equal(t, uint16(53), srcport)
+
+	val, _ = rec.GetField(fields.Dpkts)
+	dpkts := val.(uint64)
+	assert.Equal(t, uint64(1), dpkts)
 }

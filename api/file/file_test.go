@@ -5,6 +5,7 @@ import (
 	LnfFile "libnf/api/file"
 	LnfRec "libnf/api/record"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -30,11 +31,13 @@ func TestGetInfo(t *testing.T) {
 
 	first, err := file.GetFirst()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "2017-05-28 15:53:46", first.Format("2006-01-02 15:04:05"))
+	expectedFirst := time.Date(2017, 5, 28, 13, 53, 46, 933*1000000, time.UTC).UTC()
+	assert.Equal(t, expectedFirst, first)
 
 	last, err := file.GetLast()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "2017-05-28 15:56:41", last.Format("2006-01-02 15:04:05"))
+	expectedLast := time.Date(2017, 5, 28, 13, 56, 41, 76*1000000, time.UTC).UTC()
+	assert.Equal(t, expectedLast, last)
 
 	blocks, err := file.GetBlocks()
 	assert.Equal(t, nil, err)

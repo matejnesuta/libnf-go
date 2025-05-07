@@ -1,6 +1,6 @@
 libnf
 /tmp
 .vscode
-api/tmp
+api/tmp/*.tmp
 .prof/
 main

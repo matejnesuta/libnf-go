@@ -89,7 +89,7 @@ func getTimestamp(info int, f *File) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	return time.Unix(0, int64(time.Millisecond)*int64(data)), nil
+	return time.Unix(0, int64(time.Millisecond)*int64(data)).UTC(), nil
 }
 
 // GetLibnfVersion returns the version of the C libnf library, which is used under the hood.

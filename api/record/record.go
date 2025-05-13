@@ -2,13 +2,14 @@ package record
 
 import (
 	"encoding/binary"
-	"libnf-go/api/errors"
-	"libnf-go/api/fields"
-	"libnf-go/internal"
 	"net"
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/matejnesuta/libnf-go/api/errors"
+	"github.com/matejnesuta/libnf-go/api/fields"
+	"github.com/matejnesuta/libnf-go/internal"
 )
 
 type Record struct {

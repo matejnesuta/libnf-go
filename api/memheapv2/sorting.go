@@ -2,10 +2,11 @@ package memheapv2
 
 import (
 	"bytes"
-	"libnf-go/api/fields"
 	"net"
 	"sort"
 	"time"
+
+	"github.com/matejnesuta/libnf-go/api/fields"
 )
 
 func lessThan(a, b interface{}) bool {

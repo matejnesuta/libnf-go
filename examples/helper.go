@@ -2,7 +2,8 @@ package examples
 
 import (
 	"fmt"
-	"libnf-go/api/fields"
+
+	"github.com/matejnesuta/libnf-go/api/fields"
 )
 
 func printBrec(brec *fields.BasicRecord1) {

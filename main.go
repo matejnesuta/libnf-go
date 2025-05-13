@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"libnf-go/examples"
 	"log"
 	"os"
 	"runtime/pprof"
+
+	"github.com/matejnesuta/libnf-go/examples"
 
 	_ "github.com/ianlancetaylor/cgosymbolizer"
 )

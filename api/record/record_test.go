@@ -1,13 +1,14 @@
 package record_test
 
 import (
-	"libnf-go/api/errors"
-	"libnf-go/api/fields"
-	"libnf-go/api/file"
-	"libnf-go/api/record"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/matejnesuta/libnf-go/api/errors"
+	"github.com/matejnesuta/libnf-go/api/fields"
+	"github.com/matejnesuta/libnf-go/api/file"
+	"github.com/matejnesuta/libnf-go/api/record"
 
 	"github.com/stretchr/testify/assert"
 )

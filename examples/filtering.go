@@ -2,10 +2,11 @@ package examples
 
 import (
 	"fmt"
-	"libnf-go/api/fields"
-	"libnf-go/api/file"
-	"libnf-go/api/filter"
-	"libnf-go/api/record"
+
+	"github.com/matejnesuta/libnf-go/api/fields"
+	"github.com/matejnesuta/libnf-go/api/file"
+	"github.com/matejnesuta/libnf-go/api/filter"
+	"github.com/matejnesuta/libnf-go/api/record"
 )
 
 func Filtering() {

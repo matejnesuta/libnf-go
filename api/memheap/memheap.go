@@ -6,10 +6,11 @@ package memheap
 import "C"
 
 import (
-	"libnf-go/api/errors"
-	"libnf-go/api/record"
-	"libnf-go/internal"
 	"unsafe"
+
+	"github.com/matejnesuta/libnf-go/api/errors"
+	"github.com/matejnesuta/libnf-go/api/record"
+	"github.com/matejnesuta/libnf-go/internal"
 )
 
 type MemHeap struct {

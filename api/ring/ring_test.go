@@ -1,12 +1,13 @@
 package ring_test
 
 import (
-	"libnf-go/api/errors"
-	"libnf-go/api/fields"
-	"libnf-go/api/record"
-	"libnf-go/api/ring"
 	"os"
 	"testing"
+
+	"github.com/matejnesuta/libnf-go/api/errors"
+	"github.com/matejnesuta/libnf-go/api/fields"
+	"github.com/matejnesuta/libnf-go/api/record"
+	"github.com/matejnesuta/libnf-go/api/ring"
 
 	"github.com/stretchr/testify/assert"
 )

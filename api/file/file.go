@@ -2,14 +2,16 @@ package file
 
 import (
 	"C"
-	"libnf-go/api/errors"
-	"libnf-go/internal"
 	"unsafe"
+
+	"github.com/matejnesuta/libnf-go/api/errors"
+	"github.com/matejnesuta/libnf-go/internal"
 )
 import (
 	"bytes"
-	"libnf-go/api/record"
 	"time"
+
+	"github.com/matejnesuta/libnf-go/api/record"
 )
 
 // File struct represents an Nfdump. It provides methods to open, read, write, and retrieve metadata about the file.

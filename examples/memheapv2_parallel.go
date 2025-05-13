@@ -2,13 +2,14 @@ package examples
 
 import (
 	"fmt"
-	"libnf-go/api/fields"
-	"libnf-go/api/file"
-	memheap "libnf-go/api/memheapv2"
-	"libnf-go/api/record"
 	"runtime"
 	"strconv"
 	"sync"
+
+	"github.com/matejnesuta/libnf-go/api/fields"
+	"github.com/matejnesuta/libnf-go/api/file"
+	memheap "github.com/matejnesuta/libnf-go/api/memheapv2"
+	"github.com/matejnesuta/libnf-go/api/record"
 )
 
 func MemHeapV2P() {

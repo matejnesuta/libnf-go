@@ -2,7 +2,8 @@ package errors
 
 import (
 	"errors"
-	"libnf-go/internal"
+
+	"github.com/matejnesuta/libnf-go/internal"
 )
 
 // Weak errors

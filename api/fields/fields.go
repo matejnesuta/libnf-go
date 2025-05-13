@@ -1,9 +1,10 @@
 package fields
 
 import (
-	"libnf-go/internal"
 	"net"
 	"time"
+
+	"github.com/matejnesuta/libnf-go/internal"
 )
 
 type BasicRecord1 struct {

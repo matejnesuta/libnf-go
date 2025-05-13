@@ -1,11 +1,12 @@
 package file_test
 
 import (
-	LnfErr "libnf-go/api/errors"
-	LnfFile "libnf-go/api/file"
-	LnfRec "libnf-go/api/record"
 	"testing"
 	"time"
+
+	LnfErr "github.com/matejnesuta/libnf-go/api/errors"
+	LnfFile "github.com/matejnesuta/libnf-go/api/file"
+	LnfRec "github.com/matejnesuta/libnf-go/api/record"
 
 	"github.com/stretchr/testify/assert"
 )

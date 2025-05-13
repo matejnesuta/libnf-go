@@ -4,3 +4,4 @@ libnf-go
 api/tmp/*.tmp
 .prof/
 main
+libnf

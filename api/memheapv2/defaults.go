@@ -1,7 +1,7 @@
 package memheapv2
 
 import (
-	"libnf-go/api/fields"
+	"github.com/matejnesuta/libnf-go/api/fields"
 )
 
 const (

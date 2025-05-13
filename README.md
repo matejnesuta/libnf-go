@@ -1,4 +1,4 @@
-# libnf-go
+# github.com/matejnesuta/libnf-go
 
 Go bindings for the `libnf` C library — enabling parsing of NetFlow data in Go applications.
 
@@ -12,6 +12,6 @@ Go bindings for the `libnf` C library — enabling parsing of NetFlow data in Go
 To install the package, use:
 
 ```bash
-go get github.com/matejnesuta/libnf-go
+go get github.com/matejnesuta/github.com/matejnesuta/libnf-go
 ```
 

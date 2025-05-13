@@ -1,12 +1,13 @@
 package memheapv2
 
 import (
-	"libnf-go/api/errors"
-	"libnf-go/api/fields"
-	"libnf-go/api/record"
 	"net"
 	"strconv"
 	"time"
+
+	"github.com/matejnesuta/libnf-go/api/errors"
+	"github.com/matejnesuta/libnf-go/api/fields"
+	"github.com/matejnesuta/libnf-go/api/record"
 )
 
 type aggrRecord struct {

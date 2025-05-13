@@ -1,13 +1,14 @@
 package memheapv2_test
 
 import (
-	"libnf-go/api/errors"
-	"libnf-go/api/fields"
-	memheap "libnf-go/api/memheapv2"
-	"libnf-go/api/record"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/matejnesuta/libnf-go/api/errors"
+	"github.com/matejnesuta/libnf-go/api/fields"
+	memheap "github.com/matejnesuta/libnf-go/api/memheapv2"
+	"github.com/matejnesuta/libnf-go/api/record"
 
 	"github.com/stretchr/testify/assert"
 )

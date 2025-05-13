@@ -1,4 +1,4 @@
-module libnf-go
+module github.com/matejnesuta/libnf-go
 
 go 1.22.3
 

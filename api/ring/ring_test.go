@@ -1,10 +1,10 @@
 package ring_test
 
 import (
-	"libnf/api/errors"
-	"libnf/api/fields"
-	"libnf/api/record"
-	"libnf/api/ring"
+	"libnf-go/api/errors"
+	"libnf-go/api/fields"
+	"libnf-go/api/record"
+	"libnf-go/api/ring"
 	"os"
 	"testing"
 

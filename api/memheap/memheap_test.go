@@ -1,15 +1,15 @@
 package memheap_test
 
 import (
-	"libnf/api/memheap"
+	"libnf-go/api/memheap"
 	"net"
 	"testing"
 	"time"
 
-	"libnf/api/errors"
-	"libnf/api/fields"
-	"libnf/api/file"
-	"libnf/api/record"
+	"libnf-go/api/errors"
+	"libnf-go/api/fields"
+	"libnf-go/api/file"
+	"libnf-go/api/record"
 
 	"github.com/stretchr/testify/assert"
 )

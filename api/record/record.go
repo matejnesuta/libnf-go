@@ -2,9 +2,9 @@ package record
 
 import (
 	"encoding/binary"
-	"libnf/api/errors"
-	"libnf/api/fields"
-	"libnf/internal"
+	"libnf-go/api/errors"
+	"libnf-go/api/fields"
+	"libnf-go/internal"
 	"net"
 	"strings"
 	"time"

@@ -2,13 +2,13 @@ package file
 
 import (
 	"C"
-	"libnf/api/errors"
-	"libnf/internal"
+	"libnf-go/api/errors"
+	"libnf-go/internal"
 	"unsafe"
 )
 import (
 	"bytes"
-	"libnf/api/record"
+	"libnf-go/api/record"
 	"time"
 )
 

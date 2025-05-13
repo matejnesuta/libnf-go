@@ -1,10 +1,10 @@
 package memheapv2_test
 
 import (
-	"libnf/api/errors"
-	"libnf/api/fields"
-	memheap "libnf/api/memheapv2"
-	"libnf/api/record"
+	"libnf-go/api/errors"
+	"libnf-go/api/fields"
+	memheap "libnf-go/api/memheapv2"
+	"libnf-go/api/record"
 	"net"
 	"testing"
 	"time"

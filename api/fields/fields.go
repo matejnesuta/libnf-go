@@ -1,7 +1,7 @@
 package fields
 
 import (
-	"libnf/internal"
+	"libnf-go/internal"
 	"net"
 	"time"
 )

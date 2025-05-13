@@ -1,4 +1,4 @@
-libnf
+libnf-go
 /tmp
 .vscode
 api/tmp/*.tmp

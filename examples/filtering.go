@@ -2,10 +2,10 @@ package examples
 
 import (
 	"fmt"
-	"libnf/api/fields"
-	"libnf/api/file"
-	"libnf/api/filter"
-	"libnf/api/record"
+	"libnf-go/api/fields"
+	"libnf-go/api/file"
+	"libnf-go/api/filter"
+	"libnf-go/api/record"
 )
 
 func Filtering() {
@@ -41,8 +41,30 @@ func Filtering() {
 		if !ok {
 			panic("Error: Not a BasicRecord1")
 		}
+		val, _ = rec.GetField(fields.TcpFlags)
+		flags, ok := val.(uint8)
+		if !ok {
+			panic("Error: Not a TcpFlags")
+		}
 
-		printBrec(&brec)
+		val, _ = rec.GetField(fields.CalcBpp)
+		bpp, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a CalcBpp")
+		}
+		val, _ = rec.GetField(fields.CalcBps)
+		bps, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a CalcBps")
+		}
+		val, _ = rec.GetField(fields.CalcPps)
+		pps, ok := val.(float64)
+		if !ok {
+			panic("Error: Not a CalcPps")
+		}
+
+		fmt.Print(brec.First.Format("2006-01-02 15:04:05"), " ")
+		fmt.Printf("| %.3f | %3d | %-15s:%-5d | %-15s:%-5d | %6d | %8d | %4d | %d | %f | %f | %f\n", brec.Last.Sub(brec.First).Seconds(), brec.Prot, brec.SrcAddr, brec.SrcPort, brec.DstAddr, brec.DstPort, brec.Pkts, brec.Bytes, brec.Flows, flags, bpp, bps, pps)
 		num_of_matches++
 	}
 	fmt.Println("Number of matches captured by '", filter, "' filter: ", num_of_matches)

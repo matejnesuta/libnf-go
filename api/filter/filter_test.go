@@ -1,10 +1,10 @@
 package filter_test
 
 import (
-	LnfErr "libnf/api/errors"
-	LnfFile "libnf/api/file"
-	LnfFilter "libnf/api/filter"
-	LnfRec "libnf/api/record"
+	LnfErr "libnf-go/api/errors"
+	LnfFile "libnf-go/api/file"
+	LnfFilter "libnf-go/api/filter"
+	LnfRec "libnf-go/api/record"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

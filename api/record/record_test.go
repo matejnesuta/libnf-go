@@ -1,10 +1,10 @@
 package record_test
 
 import (
-	"libnf/api/errors"
-	"libnf/api/fields"
-	"libnf/api/file"
-	"libnf/api/record"
+	"libnf-go/api/errors"
+	"libnf-go/api/fields"
+	"libnf-go/api/file"
+	"libnf-go/api/record"
 	"net"
 	"testing"
 	"time"

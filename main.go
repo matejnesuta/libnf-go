@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"libnf/examples"
+	"libnf-go/examples"
 	"log"
 	"os"
 	"runtime/pprof"
@@ -80,8 +80,12 @@ func main() {
 		examples.Stats()
 	} else if os.Args[1] == "memheapv1" {
 		examples.MemHeapV1()
+	} else if os.Args[1] == "memheapv1p" {
+		examples.MemHeapV1P()
 	} else if os.Args[1] == "memheapv2" {
 		examples.MemHeapV2()
+	} else if os.Args[1] == "memheapv2p" {
+		examples.MemHeapV2P()
 	} else if os.Args[1] == "psorting" {
 		examples.Psorting()
 	} else {

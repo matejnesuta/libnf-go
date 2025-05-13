@@ -2,8 +2,8 @@ package examples
 
 import (
 	"fmt"
-	"libnf/api/file"
-	"libnf/api/record"
+	"libnf-go/api/file"
+	"libnf-go/api/record"
 )
 
 // Writer is a function that demonstrates how to use the libnf package to write data to a file.

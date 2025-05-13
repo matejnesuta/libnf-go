@@ -2,10 +2,10 @@ package examples
 
 import (
 	"fmt"
-	"libnf/api/fields"
-	"libnf/api/file"
-	memheap "libnf/api/memheapv2"
-	"libnf/api/record"
+	"libnf-go/api/fields"
+	"libnf-go/api/file"
+	memheap "libnf-go/api/memheapv2"
+	"libnf-go/api/record"
 	"sync"
 )
 

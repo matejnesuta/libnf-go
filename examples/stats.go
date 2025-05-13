@@ -4,11 +4,11 @@ package examples
 
 import (
 	"fmt"
-	"libnf/api/fields"
-	"libnf/api/file"
-	"libnf/api/filter"
-	memheap "libnf/api/memheapv2"
-	"libnf/api/record"
+	"libnf-go/api/fields"
+	"libnf-go/api/file"
+	"libnf-go/api/filter"
+	memheap "libnf-go/api/memheapv2"
+	"libnf-go/api/record"
 )
 
 func Stats() {

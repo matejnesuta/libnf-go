@@ -1,9 +1,9 @@
 package memheapv2
 
 import (
-	"libnf/api/errors"
-	"libnf/api/fields"
-	"libnf/api/record"
+	"libnf-go/api/errors"
+	"libnf-go/api/fields"
+	"libnf-go/api/record"
 	"net"
 	"strconv"
 	"time"

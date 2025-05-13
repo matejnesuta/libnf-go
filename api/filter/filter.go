@@ -1,9 +1,9 @@
 package filter
 
 import (
-	LnfErr "libnf/api/errors"
-	LnfRec "libnf/api/record"
-	"libnf/internal"
+	LnfErr "libnf-go/api/errors"
+	LnfRec "libnf-go/api/record"
+	"libnf-go/internal"
 )
 
 type Filter struct {

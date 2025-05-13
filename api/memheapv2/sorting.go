@@ -2,7 +2,7 @@ package memheapv2
 
 import (
 	"bytes"
-	"libnf/api/fields"
+	"libnf-go/api/fields"
 	"net"
 	"sort"
 	"time"

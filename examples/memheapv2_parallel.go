@@ -6,17 +6,23 @@ import (
 	"libnf-go/api/file"
 	memheap "libnf-go/api/memheapv2"
 	"libnf-go/api/record"
+	"runtime"
+	"strconv"
+	"sync"
 )
 
-func MemHeapV2() {
-	var ptr file.File
-	err := ptr.OpenRead("api/testfiles/profiling.tmp", false, false)
+func MemHeapV2P() {
 
+	rec, err := record.NewRecord()
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer ptr.Close()
-	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(1)
+	defer rec.Free()
+
+	var heap memheap.MemHeapV2 = *memheap.NewMemHeapV2(256)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	err = heap.SortAggrOptions(fields.SrcAddr, memheap.AggrKey, memheap.SortNone, 32, 128)
 	if err != nil {
@@ -33,37 +39,69 @@ func MemHeapV2() {
 	heap.SortAggrOptions(fields.CalcBpp, memheap.AggrAuto, memheap.SortAsc, 0, 0)
 	heap.SortAggrOptions(fields.CalcPps, memheap.AggrAuto, memheap.SortNone, 0, 0)
 
-	rec, _ := record.NewRecord()
-	defer rec.Free()
-
 	var i uint64 = 0
+	var wg sync.WaitGroup
+	recordMux := &sync.Mutex{}
+	incrementMux := &sync.Mutex{}
 
-	for {
-		err = ptr.GetNextRecord(&rec)
-		if err != nil {
-			break
-		}
-		err = heap.WriteRecord(&rec)
-		if err != nil {
-			fmt.Println(err)
-		}
-		i++
+	for x := 1; x < 6; x++ {
+		wg.Add(1)
+		go func() {
+			runtime.LockOSThread()         // Lock the goroutine to the OS thread
+			defer runtime.UnlockOSThread() // Unlock the goroutine from the OS thread
+			defer wg.Done()
+			var ptr file.File
+			err := ptr.OpenRead("api/testfiles/comparison/"+strconv.Itoa(x)+".tmp", false, false)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+			defer ptr.Close()
+			recordMux.Lock()
+			rec, err := record.NewRecord()
+			recordMux.Unlock()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			defer rec.Free()
+			for {
+				err = ptr.GetNextRecord(&rec)
+				if err != nil {
+					break
+				}
+				incrementMux.Lock()
+				i++
+				incrementMux.Unlock()
+				err = heap.WriteRecord(&rec)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		}()
 	}
+	wg.Wait() // Wait for all workers to finish processing
 	fmt.Println("Total records in file: ", i)
 	i = 0
-
 	cursor, err := heap.FirstRecordPosition()
 	if err != nil {
 		panic(err)
 	}
 	for {
-
-		err := heap.GetRecord(&cursor, &rec)
+		err = heap.GetRecord(&cursor, &rec)
 		if err != nil {
+			fmt.Println(err)
+			fmt.Println("Error getting record")
 			break
 		}
-		val, _ := rec.GetField(fields.Brec1)
-		brec := val.(fields.BasicRecord1)
+		val, err := rec.GetField(fields.Brec1)
+		if err != nil {
+			panic(err)
+		}
+		brec, ok := val.(fields.BasicRecord1)
+		if !ok {
+			panic("Error: Not a BasicRecord1")
+		}
 		val, _ = rec.GetField(fields.CalcBpp)
 		bpp, ok := val.(float64)
 		if !ok {
@@ -81,10 +119,15 @@ func MemHeapV2() {
 		}
 		i++
 		fmt.Println(brec.First.Format("2006-01-02 15:04:05"), brec.Last.Sub(brec.First).Seconds(), brec.SrcAddr, brec.Bytes, brec.Pkts, brec.Flows, bpp, bps, pps)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
 		cursor, err = heap.NextRecordPosition(cursor)
 		if err != nil {
 			break
 		}
+
 	}
 	fmt.Println("Total records in heap: ", i)
 }

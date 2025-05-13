@@ -1,9 +1,9 @@
 package ring
 
 import (
-	"libnf/api/errors"
-	"libnf/api/record"
-	"libnf/internal"
+	"libnf-go/api/errors"
+	"libnf-go/api/record"
+	"libnf-go/internal"
 	"unsafe"
 )
 

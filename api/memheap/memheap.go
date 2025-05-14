@@ -1,3 +1,15 @@
+// Memheap is the set of methods that allows to aggregate and sort
+// records data. This is usually done in five steps:
+//
+// 1. Create new memory heap using the NewMemHeap function.
+//
+// 2. Set key, aggregation and sort key via SetAggrOptions function.
+//
+// 3. Lock to an OS thread using the runtime.LockOSThread function and fill the internal structure with input records via WriteRecord.
+//
+// 4. Read aggregated and sorted result via GetNextRecord.
+//
+// 5. Release Memheap structure and all relevant resources using the Free function.
 package memheap
 
 // #cgo CFLAGS: -I/usr/local/include
@@ -13,40 +25,56 @@ import (
 	"github.com/matejnesuta/libnf-go/internal"
 )
 
+// MemHeap represents a memory heap used for storing flow records.
 type MemHeap struct {
 	ptr       uintptr
 	allocated bool
 }
 
+// MemHeapCursor represents a cursor used to navigate through records in the memory heap.
 type MemHeapCursor struct {
 	ptr uintptr
 }
 
 const (
-	FastAggrNone  int = internal.FAST_AGGR_NONE
+	// No aggregation.
+	FastAggrNone int = internal.FAST_AGGR_NONE
+	// Perform aggregation on items fields.First, fields.Last, fields.Doctets, fields.Pkts.
 	FastAggrBasic int = internal.FAST_AGGR_BASIC
-	FastAggrAll   int = internal.FAST_AGGR_ALL
+	// Perform aggregation on all fields.
+	FastAggrAll int = internal.FAST_AGGR_ALL
 )
 
 const (
+	// Do not sort the result.
 	SortNone int = internal.SORT_NONE
-	SortAsc  int = internal.SORT_ASC
+	// Sort the result in the ascending order.
+	SortAsc int = internal.SORT_ASC
+	// Sort the result in the descending order.
 	SortDesc int = internal.SORT_DESC
 )
 
 const (
+	// Default aggregation option for the field.
 	AggrAuto int = internal.AGGR_AUTO
-	AggrKey  int = internal.AGGR_KEY
-	AggrSum  int = internal.AGGR_SUM
-	AggrMin  int = internal.AGGR_MIN
-	AggrMax  int = internal.AGGR_MAX
-	AggrOr   int = internal.AGGR_OR
+	// // Use the field as a key for aggregation.
+	AggrKey int = internal.AGGR_KEY
+	// Make summary of all aggregated values.
+	AggrSum int = internal.AGGR_SUM
+	// Find minimum value of the field.
+	AggrMin int = internal.AGGR_MIN
+	// Find maximum value of the field.
+	AggrMax int = internal.AGGR_MAX
+	// Perform OR operation on all of the values.
+	AggrOr int = internal.AGGR_OR
 )
 
+// Check if the memory heap is allocated.
 func (m *MemHeap) Allocated() bool {
 	return m.allocated
 }
 
+// Initialize empty memheap object and allocate all necessary resources.
 func NewMemHeap() (MemHeap, error) {
 	memHeap := MemHeap{}
 	status := internal.Mem_init(&memHeap.ptr)
@@ -60,6 +88,7 @@ func NewMemHeap() (MemHeap, error) {
 	return memHeap, nil
 }
 
+// Free all resources allocated for the MemHeap object.
 func (m *MemHeap) Free() error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -69,6 +98,7 @@ func (m *MemHeap) Free() error {
 	return nil
 }
 
+// Clean all data in memheap. The memheap will be in the same state as it was after the initialization.
 func (m *MemHeap) Clear() error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -77,9 +107,7 @@ func (m *MemHeap) Clear() error {
 	return nil
 }
 
-// int 	lnf_mem_first_c (lnf_mem_t *lnf_mem, lnf_mem_cursor_t **cursor)
-//
-//	Set the cursor position to the first record.
+// Set the cursor position to the first record in MemHeap.
 func (m *MemHeap) FirstRecordPosition() (MemHeapCursor, error) {
 	if !m.allocated {
 		return MemHeapCursor{}, errors.ErrMemHeapNotAllocated
@@ -94,9 +122,7 @@ func (m *MemHeap) FirstRecordPosition() (MemHeapCursor, error) {
 	return cursor, nil
 }
 
-// int 	lnf_mem_next_c (lnf_mem_t *lnf_mem, lnf_mem_cursor_t **cursor)
-//
-//	Set the cursor position to the next record.
+// Set the cursor position to the next record in MemHeap.
 func (m *MemHeap) NextRecordPosition(c *MemHeapCursor) error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -110,9 +136,7 @@ func (m *MemHeap) NextRecordPosition(c *MemHeapCursor) error {
 	return nil
 }
 
-// int 	lnf_mem_read (lnf_mem_t *lnf_mem, lnf_rec_t *rec)
-//
-//	Read next record from memheap.
+// Read next record from the MemHeap.
 func (m *MemHeap) GetNextRecord(r *record.Record) error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -128,9 +152,8 @@ func (m *MemHeap) GetNextRecord(r *record.Record) error {
 	return nil
 }
 
-// int 	lnf_mem_write (lnf_mem_t *lnf_mem, lnf_rec_t *rec)
-//  	Write record to memheap object.
-
+// Write record to the MemHeap object. A thread must be locked to the OS thread using runtime.LockOSThread() before calling this function.
+// It is possible to call this function from multiple goroutines, but each goroutine must lock to the OS thread before calling this function and the MergeThreads function must be called at the end of each goroutine.
 func (m *MemHeap) WriteRecord(r *record.Record) error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -150,9 +173,7 @@ func (m *MemHeap) WriteRecord(r *record.Record) error {
 	return nil
 }
 
-// int 	lnf_mem_read_c (lnf_mem_t *lnf_mem, lnf_mem_cursor_t *cursor, lnf_rec_t *rec)
-//
-//	Read next record on the position given by cursor.
+// Read next record on the position given by cursor.
 func (m *MemHeap) GetRecordWithCursor(c *MemHeapCursor, r *record.Record) error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -168,9 +189,7 @@ func (m *MemHeap) GetRecordWithCursor(c *MemHeapCursor, r *record.Record) error 
 	return nil
 }
 
-// int 	lnf_mem_lookup_c (lnf_mem_t *lnf_mem, lnf_rec_t *rec, lnf_mem_cursor_t **cursor)
-//
-//	Set the cursor position to the record identified by key fields.
+// Set the cursor position to the record identified by key fields.
 func (m *MemHeap) GetRecordWithKey(r *record.Record) (MemHeapCursor, error) {
 	if !m.allocated {
 		return MemHeapCursor{}, errors.ErrMemHeapNotAllocated
@@ -187,9 +206,7 @@ func (m *MemHeap) GetRecordWithKey(r *record.Record) (MemHeapCursor, error) {
 	return cursor, nil
 }
 
-// int 	lnf_mem_merge_threads (lnf_mem_t *lnf_mem)
-//
-//	Merge data from multiple threads into one thread.
+// When multiple goroutines are used to write records to the same heap, this function must be called at the end of each goroutine.
 func (m *MemHeap) MergeThreads() error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -203,9 +220,7 @@ func (m *MemHeap) MergeThreads() error {
 	return nil
 }
 
-// int 	lnf_mem_fastaggr (lnf_mem_t *lnf_mem, int flags)
-//
-//	Set fast aggregation mode.
+// Set fast aggregation mode.
 func (m *MemHeap) SetFastAggr(option int) error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -219,9 +234,6 @@ func (m *MemHeap) SetFastAggr(option int) error {
 	return nil
 }
 
-// int 	lnf_mem_setopt (lnf_mem_t *lnf_mem, int opt, void *data, size_t size)
-//  	Set lnf_mem_t options.
-
 func callMemHeapSetOpt(m *MemHeap, opt int, data uintptr, size int64) error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated
@@ -233,21 +245,54 @@ func callMemHeapSetOpt(m *MemHeap, opt int, data uintptr, size int64) error {
 	return nil
 }
 
+// Set List mode. This is used for sorting without aggregation.
 func (m *MemHeap) SetListMode() error {
 	return callMemHeapSetOpt(m, internal.OPT_LISTMODE, uintptr(unsafe.Pointer(nil)), 0)
 }
 
+// Set the number of hash buckets.
 func (m *MemHeap) SetHashBuckets(num int) error {
 	return callMemHeapSetOpt(m, internal.OPT_HASHBUCKETS, uintptr(unsafe.Pointer(&num)), int64(unsafe.Sizeof(num)))
 }
 
+// Statistics for pair fields are counted twice in Nfdump, but only once if the pair fields are the same.
+// Libnf counts the records with pair fields twice by default.
+// This option switches Libnf to the Nfdump behavior.
+//
+// Example:
+// We have input flow
+// SRC           DST          PKTS BYTES
+// 1.1.1.1:53 -> 2.2.2.2:53      1   20
+// 3.3.3.3:80 -> 4.4.4.4:1222    3   80
+//
+// and we have statistics via port field
+//
+// In the Nfdump and Libnf with EnableNfdumpCompat option enabled
+// the result will be:
+// PORT    PKTS BYTES
+// 53         1    20
+// 80         3    80
+// 1222       3    80
+//
+// but in Libnf without the EnableNfdumpCompat option the result will be:
+// PORT    PKTS BYTES
+// 53         2    40
+// 80         3    80
+// 1222       3    80
 func (m *MemHeap) EnableNfdumpCompat() error {
 	return callMemHeapSetOpt(m, internal.OPT_COMP_STATSCMP, uintptr(unsafe.Pointer(nil)), 0)
 }
 
-// int 	lnf_mem_fadd (lnf_mem_t *lnf_mem, int field, int flags, int numbits, int numbits6)
+// SetAggrOptions configures aggregation options for a specific field in the memory heap.
 //
-//	Set aggregation and sort option for memheap.
+// Parameters:
+//   - field: the field ID.
+//   - aggrType: the aggregation type (e.g., sum, min, max, key).
+//   - sortType: the sort type to apply to the aggregation (e.g., ascending, descending).
+//   - numBits: the number of bits used when working with IPv4 addresses.
+//   - numBits6: the number of bits used when working with IPv6 addresses.
+//
+// Returns an error if the MemHeap has not been allocated or if the internal call fails.
 func (m *MemHeap) SetAggrOptions(field int, aggrType int, sortType int, numBits int, numBits6 int) error {
 	if !m.allocated {
 		return errors.ErrMemHeapNotAllocated

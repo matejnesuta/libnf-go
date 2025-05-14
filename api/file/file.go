@@ -189,7 +189,8 @@ func (f *File) GetPacketsOther() (uint64, error) {
 	return getUint64Info(internal.INFO_PACKETS_OTHER, f)
 }
 
-// GetCompressionType returns the compression type of the file.
+// GetCompressionType returns the type of compression used on the file.
+// It returns one of: NoComp, CompLZO, CompBZ2.
 func (f *File) GetCompressionType() (int, error) {
 	data, err := getBoolInfo(internal.INFO_COMPRESSED, f)
 	if err != nil {
@@ -208,7 +209,12 @@ func (f *File) GetCompressionType() (int, error) {
 	}
 }
 
-// OpenRead opens the file in read mode.
+// OpenRead initializes and opens the file in read mode.
+// If readLoop is true, the file is read in an endless loop, useful for
+// reading files like open nfcapd.nnnn files that are still being written.
+// If the file is replaced, it will reopen automatically. The loop ends
+// when the file is permanently deleted.
+// If weakErr is true, weak read errors (e.g. unknown block) are also reported.
 func (f *File) OpenRead(inputFile string, readLoop bool, weakErr bool) error {
 	if f.opened {
 		return errors.ErrFileAlreadyOpened
@@ -229,7 +235,8 @@ func (f *File) OpenRead(inputFile string, readLoop bool, weakErr bool) error {
 	return nil
 }
 
-// OpenAppend opens the file in append mode.
+// OpenAppend opens the file in append mode for reading. Not implemented yet.
+// If weakErr is true, weak read errors are also reported.
 func (f *File) OpenAppend(inputFile string, weakErr bool) error {
 	if f.opened {
 		return errors.ErrFileAlreadyOpened
@@ -247,7 +254,11 @@ func (f *File) OpenAppend(inputFile string, weakErr bool) error {
 	return nil
 }
 
-// OpenWrite opens the file in write mode.
+// OpenWrite opens the file in write mode. A new file is created, and if the
+// file exists, it is overwritten.
+// If anon is true, anonymization is enabled for the output.
+// The comp parameter sets the compression type (NoComp, CompLZO, CompBZ2).
+// If weakErr is true, weak errors are also reported.
 func (f *File) OpenWrite(outputFile string, ident string, anon bool, comp int, weakErr bool) error {
 	if f.opened {
 		return errors.ErrFileAlreadyOpened
@@ -274,7 +285,8 @@ func (f *File) OpenWrite(outputFile string, ident string, anon bool, comp int, w
 	return nil
 }
 
-// Close closes the file and frees resources.
+// Close closes the file and releases any associated resources.
+// Returns an error if the file was not open.
 func (file *File) Close() error {
 	if file.opened {
 		internal.Close(file.ptr)
@@ -284,7 +296,9 @@ func (file *File) Close() error {
 	return errors.ErrFileNotOpened
 }
 
-// GetNextRecord reads the next record from the file.
+// GetNextRecord reads the next record from the file into the given record.
+// The record must be previously allocated.
+// Returns an error if EOF is reached or a read error occurs.
 func (file *File) GetNextRecord(r *record.Record) error {
 	if !file.opened {
 		return errors.ErrFileNotOpened
@@ -301,6 +315,8 @@ func (file *File) GetNextRecord(r *record.Record) error {
 }
 
 // WriteRecord writes a record to the file.
+// The record must be previously allocated.
+// Returns an error if the write fails or memory issues occur.
 func (file *File) WriteRecord(r *record.Record) error {
 	if !file.opened {
 		return errors.ErrFileNotOpened

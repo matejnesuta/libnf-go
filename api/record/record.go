@@ -12,17 +12,18 @@ import (
 	"github.com/matejnesuta/libnf-go/internal"
 )
 
+// Record represents a flow record object.
 type Record struct {
 	ptr       uintptr
 	allocated bool
 }
 
-// GetPtr returns the pointer to the record.
+// GetPtr returns the internal pointer to the underlying C record structure.
 func (r *Record) GetPtr() uintptr {
 	return r.ptr
 }
 
-// Allocated returns whether the record is allocated.
+// Allocated returns whether the record object has been successfully allocated.
 func (r *Record) Allocated() bool {
 	return r.allocated
 }
@@ -178,6 +179,15 @@ func getString(r *Record, field int) (any, error) {
 	return strings.TrimRight(string(buf), "\x00"), nil
 }
 
+// GetField retrieves the value of a specific field from the record.
+//
+// Parameters:
+//   - field: Field ID (as defined in the fields package)
+//
+// Returns the value as an `any` and a possible error:
+//   - ErrNotSet: field is not set
+//   - ErrUnknownFld: unknown field
+//   - ErrRecordNotAllocated: record is not allocated
 func (r *Record) GetField(field int) (any, error) {
 	if !r.allocated {
 		return nil, errors.ErrRecordNotAllocated
@@ -252,6 +262,12 @@ func ipToUint32Array(ip net.IP) [4]uint32 {
 	return result
 }
 
+// SetField sets the value of a specific field in the record.
+//
+// Returns error if:
+//   - Field is unknown
+//   - Record is not allocated
+//   - Mismatching data type for field
 func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 	if !r.allocated {
 		return errors.ErrRecordNotAllocated
@@ -385,6 +401,11 @@ func SetField[T fields.FldDataType](r *Record, field int, value T) error {
 	return nil
 }
 
+// NewRecord initializes a new empty record object and allocates all necessary resources.
+//
+// Returns:
+//   - Record: the initialized Record
+//   - error: ErrNoMem if memory allocation fails, ErrOther for any other error
 func NewRecord() (Record, error) {
 	var r Record
 	status := internal.Rec_init(&r.ptr)
@@ -397,6 +418,9 @@ func NewRecord() (Record, error) {
 	return r, nil
 }
 
+// Free releases all resources associated with the record.
+//
+// Returns an error if the record has not been allocated.
 func (r *Record) Free() error {
 	if r.allocated {
 		internal.Rec_free(r.ptr)
@@ -405,6 +429,8 @@ func (r *Record) Free() error {
 	}
 	return errors.ErrRecordNotAllocated
 }
+
+// Clear resets all fields of the initialized record object to zero.
 func (r *Record) Clear() error {
 	if r.allocated {
 		internal.Rec_clear(r.ptr)
@@ -413,6 +439,9 @@ func (r *Record) Clear() error {
 	return errors.ErrRecordNotAllocated
 }
 
+// CopyFrom copies the contents of another record into the current record.
+//
+// Returns an error if either record is not allocated or if the copy fails.
 func (r *Record) CopyFrom(other Record) error {
 	if !r.allocated || !other.allocated {
 		return errors.ErrRecordNotAllocated

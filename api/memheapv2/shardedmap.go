@@ -1,4 +1,3 @@
-// The sharded map is inspired by this article: https://medium.com/@isurucuma/let-us-build-a-thread-safe-shardedmap-in-golang-273b0c6c092b
 package memheapv2
 
 import (
@@ -11,6 +10,7 @@ type shard[T any] struct {
 	m map[string]T
 }
 
+// The sharded map is inspired by this article: https://medium.com/@isurucuma/let-us-build-a-thread-safe-shardedmap-in-golang-273b0c6c092b
 type shardedMap[T any] []*shard[T]
 
 func newShardedMap[T any](nShards uint) shardedMap[T] {

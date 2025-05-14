@@ -41,6 +41,8 @@ type MemHeapCursor struct {
 	cursor uint64
 }
 
+// NewMemHeapV2 creates a new instance of MemHeapV2 with the specified number of shards.
+// If the number of shards is zero, it defaults to one.
 func NewMemHeapV2(shards uint) *MemHeapV2 {
 	if shards == 0 {
 		shards = 1
@@ -52,6 +54,8 @@ func NewMemHeapV2(shards uint) *MemHeapV2 {
 	}
 }
 
+// SetShards sets the number of shards used in the internal map structure.
+// If the provided value is zero, it defaults to one and reinitializes the table.
 func (m *MemHeapV2) SetShards(shards uint) {
 	if shards == 0 {
 		shards = 1
@@ -281,10 +285,14 @@ end:
 	return nil
 }
 
+// SetNfdumpComp enables or disables compatibility mode with nfdump.
+// When enabled, bidirectional flow keys are deduplicated.
 func (m *MemHeapV2) SetNfdumpComp(on bool) {
 	m.nfdumpComp = on
 }
 
+// FirstRecordPosition returns a cursor pointing to the first record in the heap.
+// Returns an error if the heap is empty.
 func (m *MemHeapV2) FirstRecordPosition() (MemHeapCursor, error) {
 	var cursor MemHeapCursor
 	if m.table.itemCount() == 0 {
@@ -294,6 +302,8 @@ func (m *MemHeapV2) FirstRecordPosition() (MemHeapCursor, error) {
 	return cursor, nil
 }
 
+// NextRecordPosition returns the next cursor position relative to the provided cursor.
+// Returns an error if the heap is empty or the end has been reached.
 func (m *MemHeapV2) NextRecordPosition(cursor MemHeapCursor) (MemHeapCursor, error) {
 	var newCursor MemHeapCursor
 	if m.table.itemCount() == 0 {
@@ -332,6 +342,13 @@ func setFieldInRecord(rec *record.Record, field int, val any) error {
 	return nil
 }
 
+// GetRecord retrieves the record at the specified cursor position into the provided Record object.
+//
+// Parameters:
+//   - cursor: position of the record to retrieve.
+//   - rec: pointer to an allocated Record to populate.
+//
+// Returns an error if the heap is empty, the record is not allocated, or the cursor is out of bounds.
 func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 	if !rec.Allocated() {
 		return errors.ErrRecordNotAllocated
@@ -363,6 +380,7 @@ func (m *MemHeapV2) GetRecord(cursor *MemHeapCursor, rec *record.Record) error {
 	return nil
 }
 
+// Clear resets the MemHeapV2 instance by clearing all data, templates, and configurations.
 func (m *MemHeapV2) Clear() {
 	m.table = newShardedMap[aggrRecord](m.shards)
 	m.sortedKeys = nil
